@@ -11,46 +11,50 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { colors, fontSizes, spacing, borderRadius, shadows } from '../../config/theme';
+import { colors, fontSizes, spacing, borderRadius, shadows, classOptions } from '../../config/theme';
 import { mockUser } from '../../data/mockData';
 
 const AccountScreen = ({ navigation }) => {
+    const [user] = useState(mockUser);
     const [pushNotifications, setPushNotifications] = useState(true);
-    const [emailNotifications, setEmailNotifications] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
+    const userClassInfo = classOptions.find(c => c.id === user.class);
 
-    const user = mockUser;
+    const isSubscribed = user.subscription?.active;
 
     const menuItems = [
         {
             section: 'Account',
             items: [
                 { icon: 'account-outline', label: 'Edit Profile', onPress: () => { } },
-                { icon: 'credit-card-outline', label: 'Payment Methods', onPress: () => { } },
-                { icon: 'crown-outline', label: 'Subscription', onPress: () => navigation.navigate('Subscription'), badge: user.isSubscribed ? 'PRO' : null },
-                { icon: 'download-outline', label: 'Download Settings', onPress: () => { } },
-            ],
-        },
-        {
-            section: 'Learning',
-            items: [
-                { icon: 'certificate-outline', label: 'Certificates', onPress: () => { } },
-                { icon: 'history', label: 'Learning History', onPress: () => { } },
-                { icon: 'bell-outline', label: 'Reminders', onPress: () => { } },
+                {
+                    icon: 'crown-outline',
+                    label: 'My Subscription',
+                    onPress: () => navigation.navigate('Subscription'),
+                    badge: isSubscribed ? 'ACTIVE' : null,
+                    badgeColor: isSubscribed ? colors.success : colors.error,
+                },
+                { icon: 'download-outline', label: 'Downloads', onPress: () => { } },
             ],
         },
         {
             section: 'Support',
             items: [
-                { icon: 'help-circle-outline', label: 'Help Center', onPress: () => { } },
-                { icon: 'message-text-outline', label: 'Contact Support', onPress: () => { } },
-                { icon: 'file-document-outline', label: 'Terms & Policies', onPress: () => { } },
+                { icon: 'whatsapp', label: 'WhatsApp Support', onPress: () => { } },
+                { icon: 'help-circle-outline', label: 'Help & FAQ', onPress: () => { } },
+                { icon: 'information-outline', label: 'About Genii Books', onPress: () => { } },
+            ],
+        },
+        {
+            section: 'Legal',
+            items: [
+                { icon: 'file-document-outline', label: 'Terms & Conditions', onPress: () => { } },
+                { icon: 'shield-check-outline', label: 'Privacy Policy', onPress: () => { } },
+                { icon: 'credit-card-refund-outline', label: 'Refund Policy', onPress: () => { } },
             ],
         },
     ];
 
     const handleLogout = () => {
-        // Logout logic
         navigation.reset({
             index: 0,
             routes: [{ name: 'Login' }],
@@ -67,56 +71,40 @@ const AccountScreen = ({ navigation }) => {
                 style={styles.header}
             >
                 <View style={styles.profileContainer}>
-                    <Image
-                        source={{ uri: user.avatar }}
-                        style={styles.avatar}
-                    />
+                    <View style={styles.avatarContainer}>
+                        <Text style={styles.avatarText}>
+                            {user.name.charAt(0).toUpperCase()}
+                        </Text>
+                    </View>
                     <View style={styles.profileInfo}>
                         <Text style={styles.userName}>{user.name}</Text>
                         <Text style={styles.userEmail}>{user.email}</Text>
+                        <View style={styles.classBadge}>
+                            <Icon name={userClassInfo?.icon} size={14} color={colors.textLight} />
+                            <Text style={styles.classText}>{userClassInfo?.label}</Text>
+                        </View>
                     </View>
                     <TouchableOpacity style={styles.editButton}>
                         <Icon name="pencil" size={20} color={colors.textLight} />
                     </TouchableOpacity>
                 </View>
 
-                {/* Subscription Badge */}
-                {user.isSubscribed && (
+                {/* Subscription Status */}
+                {isSubscribed && (
                     <View style={styles.subscriptionBadge}>
-                        <Icon name="crown" size={16} color={colors.warning} />
-                        <Text style={styles.subscriptionText}>
-                            {user.subscriptionType} member until {user.subscriptionExpiry}
-                        </Text>
+                        <Icon name="crown" size={16} color={colors.secondary} />
+                        <Text style={styles.subscriptionText}>Premium Active</Text>
+                        <Text style={styles.expiryText}>Until {user.subscription.expiryDate}</Text>
                     </View>
                 )}
             </LinearGradient>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Stats */}
-                <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{user.enrolledCourses.length}</Text>
-                        <Text style={styles.statLabel}>Courses</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>12</Text>
-                        <Text style={styles.statLabel}>Hours Learned</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>2</Text>
-                        <Text style={styles.statLabel}>Certificates</Text>
-                    </View>
-                </View>
-
-                {/* Settings Toggles */}
+                {/* Notification Toggle */}
                 <View style={styles.settingsSection}>
-                    <Text style={styles.sectionTitle}>Preferences</Text>
-
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Icon name="bell-ring-outline" size={22} color={colors.textPrimary} />
+                            <Icon name="bell-ring-outline" size={22} color={colors.primary} />
                             <Text style={styles.settingLabel}>Push Notifications</Text>
                         </View>
                         <Switch
@@ -124,32 +112,6 @@ const AccountScreen = ({ navigation }) => {
                             onValueChange={setPushNotifications}
                             trackColor={{ false: colors.border, true: colors.primaryLight }}
                             thumbColor={pushNotifications ? colors.primary : colors.textMuted}
-                        />
-                    </View>
-
-                    <View style={styles.settingItem}>
-                        <View style={styles.settingLeft}>
-                            <Icon name="email-outline" size={22} color={colors.textPrimary} />
-                            <Text style={styles.settingLabel}>Email Notifications</Text>
-                        </View>
-                        <Switch
-                            value={emailNotifications}
-                            onValueChange={setEmailNotifications}
-                            trackColor={{ false: colors.border, true: colors.primaryLight }}
-                            thumbColor={emailNotifications ? colors.primary : colors.textMuted}
-                        />
-                    </View>
-
-                    <View style={styles.settingItem}>
-                        <View style={styles.settingLeft}>
-                            <Icon name="weather-night" size={22} color={colors.textPrimary} />
-                            <Text style={styles.settingLabel}>Dark Mode</Text>
-                        </View>
-                        <Switch
-                            value={darkMode}
-                            onValueChange={setDarkMode}
-                            trackColor={{ false: colors.border, true: colors.primaryLight }}
-                            thumbColor={darkMode ? colors.primary : colors.textMuted}
                         />
                     </View>
                 </View>
@@ -165,12 +127,12 @@ const AccountScreen = ({ navigation }) => {
                                 onPress={item.onPress}
                             >
                                 <View style={styles.menuLeft}>
-                                    <Icon name={item.icon} size={22} color={colors.textPrimary} />
+                                    <Icon name={item.icon} size={22} color={colors.primary} />
                                     <Text style={styles.menuLabel}>{item.label}</Text>
                                 </View>
                                 <View style={styles.menuRight}>
                                     {item.badge && (
-                                        <View style={styles.menuBadge}>
+                                        <View style={[styles.menuBadge, { backgroundColor: item.badgeColor }]}>
                                             <Text style={styles.menuBadgeText}>{item.badge}</Text>
                                         </View>
                                     )}
@@ -183,12 +145,19 @@ const AccountScreen = ({ navigation }) => {
 
                 {/* Logout Button */}
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                    <Icon name="logout" size={22} color={colors.accent} />
+                    <Icon name="logout" size={22} color={colors.error} />
                     <Text style={styles.logoutText}>Log Out</Text>
                 </TouchableOpacity>
 
                 {/* App Version */}
-                <Text style={styles.versionText}>Version 1.0.0</Text>
+                <View style={styles.versionContainer}>
+                    <Image
+                        source={require('../../assets/logo.jpeg')}
+                        style={styles.logoSmall}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.versionText}>Genii Books v1.0.0</Text>
+                </View>
 
                 <View style={styles.bottomPadding} />
             </ScrollView>
@@ -210,12 +179,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    avatar: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        borderWidth: 3,
-        borderColor: colors.textLight,
+    avatarContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: colors.secondary,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    avatarText: {
+        fontSize: fontSizes.xxxl,
+        fontWeight: '700',
+        color: colors.textPrimary,
     },
     profileInfo: {
         flex: 1,
@@ -232,13 +207,29 @@ const styles = StyleSheet.create({
         opacity: 0.8,
         marginTop: 2,
     },
+    classBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingVertical: 4,
+        paddingHorizontal: spacing.sm,
+        borderRadius: borderRadius.sm,
+        alignSelf: 'flex-start',
+        marginTop: spacing.sm,
+    },
+    classText: {
+        fontSize: fontSizes.xs,
+        color: colors.textLight,
+        fontWeight: '600',
+        marginLeft: 4,
+    },
     editButton: {
         padding: spacing.sm,
     },
     subscriptionBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(255,255,255,0.15)',
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.md,
         borderRadius: borderRadius.round,
@@ -247,58 +238,28 @@ const styles = StyleSheet.create({
     },
     subscriptionText: {
         fontSize: fontSizes.sm,
+        fontWeight: '600',
         color: colors.textLight,
         marginLeft: spacing.xs,
     },
-    statsContainer: {
-        flexDirection: 'row',
-        backgroundColor: colors.background,
-        marginHorizontal: spacing.lg,
-        marginTop: -spacing.lg,
-        borderRadius: borderRadius.lg,
-        paddingVertical: spacing.lg,
-        ...shadows.medium,
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    statNumber: {
-        fontSize: fontSizes.xxxl,
-        fontWeight: '700',
-        color: colors.primary,
-    },
-    statLabel: {
+    expiryText: {
         fontSize: fontSizes.sm,
-        color: colors.textSecondary,
-        marginTop: 4,
-    },
-    statDivider: {
-        width: 1,
-        backgroundColor: colors.borderLight,
+        color: colors.textLight,
+        opacity: 0.8,
+        marginLeft: spacing.sm,
     },
     settingsSection: {
         backgroundColor: colors.background,
         marginTop: spacing.lg,
-        paddingVertical: spacing.md,
-    },
-    sectionTitle: {
-        fontSize: fontSizes.sm,
-        fontWeight: '600',
-        color: colors.textSecondary,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
+        marginHorizontal: spacing.lg,
+        borderRadius: borderRadius.lg,
+        ...shadows.light,
     },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: spacing.md,
-        paddingHorizontal: spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
+        padding: spacing.lg,
     },
     settingLeft: {
         flexDirection: 'row',
@@ -310,13 +271,22 @@ const styles = StyleSheet.create({
         marginLeft: spacing.md,
     },
     menuSection: {
-        backgroundColor: colors.background,
         marginTop: spacing.lg,
+    },
+    sectionTitle: {
+        fontSize: fontSizes.sm,
+        fontWeight: '600',
+        color: colors.textSecondary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        paddingHorizontal: spacing.lg,
+        marginBottom: spacing.sm,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        backgroundColor: colors.background,
         paddingVertical: spacing.lg,
         paddingHorizontal: spacing.lg,
         borderBottomWidth: 1,
@@ -336,7 +306,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     menuBadge: {
-        backgroundColor: colors.primary,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
         borderRadius: borderRadius.sm,
@@ -352,20 +321,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.background,
-        marginTop: spacing.lg,
+        marginHorizontal: spacing.lg,
+        marginTop: spacing.xxl,
         paddingVertical: spacing.lg,
+        borderRadius: borderRadius.lg,
+        ...shadows.light,
     },
     logoutText: {
         fontSize: fontSizes.md,
         fontWeight: '600',
-        color: colors.accent,
+        color: colors.error,
         marginLeft: spacing.sm,
+    },
+    versionContainer: {
+        alignItems: 'center',
+        marginTop: spacing.xxl,
+    },
+    logoSmall: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        opacity: 0.5,
     },
     versionText: {
         fontSize: fontSizes.sm,
         color: colors.textMuted,
-        textAlign: 'center',
-        marginTop: spacing.lg,
+        marginTop: spacing.sm,
     },
     bottomPadding: {
         height: 100,

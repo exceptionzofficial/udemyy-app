@@ -4,133 +4,141 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
+    Image,
     StatusBar,
     KeyboardAvoidingView,
     Platform,
+    ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LottieView from 'lottie-react-native';
 import { colors, fontSizes, spacing, borderRadius } from '../../config/theme';
 import { Button, Input } from '../../components/common';
 
 const ForgotPasswordScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
 
     const handleResetPassword = async () => {
-        if (!email) {
+        if (!email.trim()) {
             setError('Email is required');
             return;
         }
         if (!/\S+@\S+\.\S+/.test(email)) {
-            setError('Please enter a valid email');
+            setError('Invalid email format');
             return;
         }
 
         setLoading(true);
-        setError('');
-
         // Simulate API call
         setTimeout(() => {
             setLoading(false);
-            setSuccess(true);
+            setEmailSent(true);
         }, 1500);
     };
-
-    if (success) {
-        return (
-            <View style={styles.container}>
-                <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-
-                <View style={styles.successContainer}>
-                    <View style={styles.successIcon}>
-                        <Icon name="email-check-outline" size={80} color={colors.primary} />
-                    </View>
-
-                    <Text style={styles.successTitle}>Check your email</Text>
-                    <Text style={styles.successText}>
-                        We've sent password reset instructions to{'\n'}
-                        <Text style={styles.emailHighlight}>{email}</Text>
-                    </Text>
-
-                    <Button
-                        title="Back to Login"
-                        onPress={() => navigation.navigate('Login')}
-                        fullWidth
-                        style={styles.backButton}
-                    />
-
-                    <TouchableOpacity onPress={() => setSuccess(false)} style={styles.resendContainer}>
-                        <Text style={styles.resendText}>Didn't receive email? </Text>
-                        <Text style={styles.resendLink}>Resend</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
-    }
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
 
-            {/* Header */}
-            <LinearGradient
-                colors={[colors.primaryDark, colors.primary]}
-                style={styles.header}
-            >
-                <TouchableOpacity
-                    style={styles.backButtonHeader}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Icon name="arrow-left" size={24} color={colors.textLight} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Forgot Password</Text>
-                <Text style={styles.headerSubtitle}>
-                    Enter your email and we'll send you instructions to reset your password
-                </Text>
-            </LinearGradient>
-
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.formContainer}
+                style={styles.keyboardView}
             >
-                <View style={styles.content}>
-                    <View style={styles.iconContainer}>
-                        <Icon name="lock-reset" size={60} color={colors.primary} />
-                    </View>
-
-                    <Input
-                        label="Email Address"
-                        value={email}
-                        onChangeText={(text) => {
-                            setEmail(text);
-                            setError('');
-                        }}
-                        placeholder="Enter your registered email"
-                        keyboardType="email-address"
-                        leftIcon="email-outline"
-                        error={error}
-                    />
-
-                    <Button
-                        title="Reset Password"
-                        onPress={handleResetPassword}
-                        loading={loading}
-                        fullWidth
-                        style={styles.resetButton}
-                    />
-
-                    <TouchableOpacity
-                        style={styles.loginLink}
-                        onPress={() => navigation.navigate('Login')}
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header */}
+                    <LinearGradient
+                        colors={[colors.primaryDark, colors.primary]}
+                        style={styles.header}
                     >
-                        <Icon name="arrow-left" size={16} color={colors.primary} />
-                        <Text style={styles.loginLinkText}>Back to Login</Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity
+                            style={styles.backButton}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Icon name="arrow-left" size={24} color={colors.textLight} />
+                        </TouchableOpacity>
+
+                        <Image
+                            source={require('../../assets/logo.jpeg')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.appName}>Genii Books</Text>
+                    </LinearGradient>
+
+                    {emailSent ? (
+                        /* Success State */
+                        <View style={styles.content}>
+                            <View style={styles.successIcon}>
+                                <Icon name="email-check-outline" size={60} color={colors.primary} />
+                            </View>
+                            <Text style={styles.successTitle}>Check Your Email</Text>
+                            <Text style={styles.successText}>
+                                We've sent password reset instructions to:
+                            </Text>
+                            <Text style={styles.emailText}>{email}</Text>
+                            <Text style={styles.successNote}>
+                                If you don't see the email, check your spam folder.
+                            </Text>
+
+                            <Button
+                                title="Back to Login"
+                                onPress={() => navigation.navigate('Login')}
+                                fullWidth
+                                style={styles.button}
+                            />
+
+                            <TouchableOpacity
+                                style={styles.resendLink}
+                                onPress={() => setEmailSent(false)}
+                            >
+                                <Text style={styles.resendText}>Didn't receive? Try again</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        /* Form State */
+                        <View style={styles.content}>
+                            <Text style={styles.title}>Forgot Password?</Text>
+                            <Text style={styles.subtitle}>
+                                Enter your email address and we'll send you instructions to reset your password.
+                            </Text>
+
+                            <Input
+                                label="Email Address"
+                                value={email}
+                                onChangeText={(v) => {
+                                    setEmail(v);
+                                    if (error) setError('');
+                                }}
+                                placeholder="Enter your email"
+                                keyboardType="email-address"
+                                leftIcon="email-outline"
+                                error={error}
+                            />
+
+                            <Button
+                                title="Send Reset Link"
+                                onPress={handleResetPassword}
+                                loading={loading}
+                                fullWidth
+                                style={styles.button}
+                            />
+
+                            <TouchableOpacity
+                                style={styles.backLink}
+                                onPress={() => navigation.navigate('Login')}
+                            >
+                                <Icon name="arrow-left" size={18} color={colors.primary} />
+                                <Text style={styles.backLinkText}>Back to Login</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </ScrollView>
             </KeyboardAvoidingView>
         </View>
     );
@@ -141,100 +149,116 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
+    keyboardView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
     header: {
         paddingTop: 50,
         paddingBottom: 30,
-        paddingHorizontal: spacing.lg,
+        alignItems: 'center',
+        borderBottomLeftRadius: borderRadius.xxl,
+        borderBottomRightRadius: borderRadius.xxl,
     },
-    backButtonHeader: {
-        marginBottom: spacing.md,
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: spacing.lg,
+        padding: spacing.sm,
     },
-    headerTitle: {
-        fontSize: fontSizes.xxxl,
+    logo: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 2,
+        borderColor: colors.textLight,
+    },
+    appName: {
+        fontSize: fontSizes.xxl,
         fontWeight: '700',
         color: colors.textLight,
-    },
-    headerSubtitle: {
-        fontSize: fontSizes.md,
-        color: colors.textLight,
-        opacity: 0.9,
         marginTop: spacing.sm,
-        lineHeight: 22,
-    },
-    formContainer: {
-        flex: 1,
     },
     content: {
+        flex: 1,
         padding: spacing.xl,
         paddingTop: spacing.xxxl,
     },
-    iconContainer: {
-        alignItems: 'center',
+    title: {
+        fontSize: fontSizes.xxxl,
+        fontWeight: '700',
+        color: colors.textPrimary,
+        marginBottom: spacing.sm,
+    },
+    subtitle: {
+        fontSize: fontSizes.md,
+        color: colors.textSecondary,
+        lineHeight: 22,
         marginBottom: spacing.xxl,
     },
-    resetButton: {
+    button: {
         marginTop: spacing.lg,
     },
-    loginLink: {
+    backLink: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: spacing.xxl,
     },
-    loginLinkText: {
-        color: colors.primary,
+    backLinkText: {
         fontSize: fontSizes.md,
-        fontWeight: '600',
-        marginLeft: spacing.sm,
+        color: colors.primary,
+        fontWeight: '500',
+        marginLeft: spacing.xs,
     },
+
     // Success State
-    successContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: spacing.xl,
-    },
     successIcon: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: colors.backgroundGray,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: colors.primary + '15',
         alignItems: 'center',
         justifyContent: 'center',
+        alignSelf: 'center',
         marginBottom: spacing.xxl,
     },
     successTitle: {
         fontSize: fontSizes.xxxl,
         fontWeight: '700',
         color: colors.textPrimary,
+        textAlign: 'center',
         marginBottom: spacing.md,
     },
     successText: {
         fontSize: fontSizes.md,
         color: colors.textSecondary,
         textAlign: 'center',
-        lineHeight: 24,
+    },
+    emailText: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
+        color: colors.primary,
+        textAlign: 'center',
+        marginTop: spacing.sm,
+        marginBottom: spacing.lg,
+    },
+    successNote: {
+        fontSize: fontSizes.sm,
+        color: colors.textMuted,
+        textAlign: 'center',
         marginBottom: spacing.xxl,
     },
-    emailHighlight: {
-        color: colors.textPrimary,
-        fontWeight: '600',
-    },
-    backButton: {
-        width: '100%',
-    },
-    resendContainer: {
-        flexDirection: 'row',
-        marginTop: spacing.xxl,
+    resendLink: {
+        alignItems: 'center',
+        marginTop: spacing.xl,
     },
     resendText: {
-        color: colors.textSecondary,
         fontSize: fontSizes.md,
-    },
-    resendLink: {
         color: colors.primary,
-        fontSize: fontSizes.md,
-        fontWeight: '600',
+        fontWeight: '500',
     },
 });
 

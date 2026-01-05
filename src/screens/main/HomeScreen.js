@@ -5,160 +5,224 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    StatusBar,
-    RefreshControl,
     Image,
+    StatusBar,
+    FlatList,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontSizes, spacing, borderRadius, shadows } from '../../config/theme';
-import { mockCategories, mockCourses } from '../../data/mockData';
-import { CategoryCarousel, CourseRow, FeaturedBanner, SaleBanner } from '../../components/home';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, fontSizes, spacing, borderRadius, shadows, classOptions } from '../../config/theme';
+import { mockUser, mockSubjects, mockContent } from '../../data/mockData';
 
 const HomeScreen = ({ navigation }) => {
-    const [refreshing, setRefreshing] = useState(false);
+    const insets = useSafeAreaInsets();
+    const [user] = useState(mockUser);
+    const [subjects] = useState(mockSubjects[user.class] || []);
+    const [content] = useState(mockContent.filter(c => c.targetClass.includes(user.class)));
+    const [selectedSubject, setSelectedSubject] = useState(null);
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 1500);
+    const isSubscribed = user.subscription?.active;
+    const userClassInfo = classOptions.find(c => c.id === user.class);
+
+    const filteredContent = selectedSubject
+        ? content.filter(c => c.subject === selectedSubject)
+        : content;
+
+    const formatPrice = (price) => price === 0 ? 'FREE' : '₹' + price;
+
+    const handleContentPress = (item) => {
+        if (item.isFree || isSubscribed) {
+            navigation.navigate('VideoPlayer', { content: item });
+        } else {
+            navigation.navigate('Subscription');
+        }
     };
 
-    const handleCoursePress = (course) => {
-        navigation.navigate('CourseDetail', { course });
-    };
+    const renderSubjectItem = (subject) => (
+        <TouchableOpacity
+            key={subject.id}
+            style={[
+                styles.subjectChip,
+                selectedSubject === subject.name && { backgroundColor: subject.color },
+            ]}
+            onPress={() => setSelectedSubject(selectedSubject === subject.name ? null : subject.name)}
+        >
+            <Icon
+                name={subject.icon}
+                size={18}
+                color={selectedSubject === subject.name ? colors.textLight : subject.color}
+            />
+            <Text style={[
+                styles.subjectText,
+                selectedSubject === subject.name && styles.subjectTextActive,
+            ]}>
+                {subject.name}
+            </Text>
+        </TouchableOpacity>
+    );
 
-    const handleCategoryPress = (category) => {
-        navigation.navigate('CategoryCourses', { category });
-    };
+    const renderContentCard = ({ item }) => (
+        <TouchableOpacity
+            style={styles.contentCard}
+            onPress={() => handleContentPress(item)}
+            activeOpacity={0.8}
+        >
+            <View style={styles.thumbnailContainer}>
+                <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
 
-    const handleSearch = () => {
-        navigation.navigate('Search');
-    };
+                {/* Content Type Badge */}
+                <View style={[styles.typeBadge, item.type === 'pdf' ? styles.pdfBadge : styles.videoBadge]}>
+                    <Icon
+                        name={item.type === 'pdf' ? 'file-document' : 'play-circle'}
+                        size={14}
+                        color={colors.textLight}
+                    />
+                    <Text style={styles.typeText}>{item.type.toUpperCase()}</Text>
+                </View>
+
+                {/* Lock Overlay */}
+                {!item.isFree && !isSubscribed && (
+                    <View style={styles.lockOverlay}>
+                        <Icon name="lock" size={32} color={colors.textLight} />
+                    </View>
+                )}
+
+                {/* Free Badge */}
+                {item.isFree && (
+                    <View style={styles.freeBadge}>
+                        <Text style={styles.freeText}>FREE</Text>
+                    </View>
+                )}
+            </View>
+
+            <View style={styles.contentInfo}>
+                <Text style={styles.contentTitle} numberOfLines={2}>{item.title}</Text>
+
+                <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                        <Icon name="star" size={14} color={colors.secondary} />
+                        <Text style={styles.metaText}>{item.rating}</Text>
+                    </View>
+
+                    {item.type === 'pdf' ? (
+                        <View style={styles.metaItem}>
+                            <Icon name="file-document-outline" size={14} color={colors.textSecondary} />
+                            <Text style={styles.metaText}>{item.pages} pages</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.metaItem}>
+                            <Icon name="clock-outline" size={14} color={colors.textSecondary} />
+                            <Text style={styles.metaText}>{item.duration}</Text>
+                        </View>
+                    )}
+                </View>
+
+                <View style={styles.priceRow}>
+                    <Text style={[styles.price, item.isFree && styles.priceGreen]}>
+                        {formatPrice(item.price)}
+                    </Text>
+                    {!item.isFree && !isSubscribed && (
+                        <View style={styles.subscribeHint}>
+                            <Icon name="crown" size={12} color={colors.secondary} />
+                            <Text style={styles.subscribeHintText}>Subscribe to unlock</Text>
+                        </View>
+                    )}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <LinearGradient
+                colors={[colors.primaryDark, colors.primary]}
+                style={[styles.header, { paddingTop: insets.top + spacing.md }]}
+            >
                 <View style={styles.headerTop}>
-                    <View style={styles.logoContainer}>
-                        <View style={styles.logoIcon}>
-                            <Text style={styles.logoText}>Y</Text>
+                    <View style={styles.headerLeft}>
+                        <Image
+                            source={require('../../assets/logo.jpeg')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <View>
+                            <Text style={styles.appName}>Genii Books</Text>
+                            <View style={styles.classBadge}>
+                                <Text style={styles.classText}>{userClassInfo?.label}</Text>
+                            </View>
                         </View>
-                        <Text style={styles.appName}>Your App Name</Text>
                     </View>
 
-                    <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.headerButton}>
+                    <View style={styles.headerRight}>
+                        <TouchableOpacity style={styles.headerIcon}>
                             <Icon name="bell-outline" size={24} color={colors.textLight} />
-                            <View style={styles.notificationBadge} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.headerButton}>
-                            <Icon name="cart-outline" size={24} color={colors.textLight} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Search Bar */}
-                <TouchableOpacity style={styles.searchBar} onPress={handleSearch} activeOpacity={0.8}>
-                    <Icon name="magnify" size={20} color={colors.textSecondary} />
-                    <Text style={styles.searchPlaceholder}>Search for anything</Text>
-                </TouchableOpacity>
-            </View>
+                {/* Subscription Status */}
+                {isSubscribed ? (
+                    <View style={styles.subscriptionBanner}>
+                        <Icon name="crown" size={18} color={colors.secondary} />
+                        <Text style={styles.subscriptionText}>Premium Active</Text>
+                        <Text style={styles.expiryText}>Expires: {user.subscription.expiryDate}</Text>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        style={styles.upgradeBanner}
+                        onPress={() => navigation.navigate('Subscription')}
+                    >
+                        <View style={styles.upgradeLeft}>
+                            <Icon name="rocket-launch" size={20} color={colors.secondary} />
+                            <Text style={styles.upgradeText}>Upgrade to Premium</Text>
+                        </View>
+                        <Text style={styles.upgradePrice}>Unlock All Content →</Text>
+                    </TouchableOpacity>
+                )}
+            </LinearGradient>
 
             <ScrollView
+                style={styles.content}
                 showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
+                contentContainerStyle={{ paddingBottom: 100 }}
             >
-                {/* Sale Banner */}
-                <SaleBanner
-                    discount={85}
-                    endTime="24:00:00"
-                    onPress={() => navigation.navigate('Search')}
-                />
-
-                {/* Featured Banner */}
-                <FeaturedBanner
-                    title="Learn new skills"
-                    subtitle="Courses from ₹449 | Sale ends today"
-                    buttonText="Browse courses"
-                    onButtonPress={() => navigation.navigate('Search')}
-                />
-
-                {/* Categories */}
-                <CategoryCarousel
-                    categories={mockCategories}
-                    onCategoryPress={handleCategoryPress}
-                    title="Categories"
-                    showAll
-                    onShowAllPress={() => navigation.navigate('Categories')}
-                />
-
-                {/* Featured Courses */}
-                <CourseRow
-                    title="Featured"
-                    subtitle="Courses chosen just for you"
-                    courses={mockCourses.filter(c => c.isBestseller)}
-                    onCoursePress={handleCoursePress}
-                    onSeeAllPress={() => navigation.navigate('Search', { filter: 'featured' })}
-                />
-
-                {/* Because you viewed Web Development */}
-                <CourseRow
-                    title="Because you viewed"
-                    subtitle="Web Development"
-                    courses={mockCourses.slice(0, 4)}
-                    onCoursePress={handleCoursePress}
-                    onSeeAllPress={() => navigation.navigate('Search')}
-                />
-
-                {/* Top courses in Development */}
-                <CourseRow
-                    title="Top courses in Development"
-                    courses={mockCourses.filter(c => c.isBestseller)}
-                    onCoursePress={handleCoursePress}
-                    onSeeAllPress={() => navigation.navigate('CategoryCourses', { category: mockCategories[0] })}
-                />
-
-                {/* Students are viewing */}
-                <CourseRow
-                    title="Students are viewing"
-                    courses={mockCourses.slice(2, 6)}
-                    onCoursePress={handleCoursePress}
-                    onSeeAllPress={() => navigation.navigate('Search')}
-                />
-
-                {/* Short & Sweet */}
-                <View style={styles.promoSection}>
-                    <View style={styles.promoHeader}>
-                        <Text style={styles.promoTitle}>Short and sweet courses</Text>
-                        <Text style={styles.promoSubtitle}>5 hours or less</Text>
-                    </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.promoScroll}>
-                        {mockCourses.slice(0, 3).map((course) => (
-                            <TouchableOpacity key={course.id} style={styles.promoCard} onPress={() => handleCoursePress(course)}>
-                                <Image source={{ uri: course.thumbnail }} style={styles.promoImage} />
-                                <View style={styles.promoDuration}>
-                                    <Icon name="clock-outline" size={12} color={colors.textLight} />
-                                    <Text style={styles.promoDurationText}>{course.duration}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
+                {/* Subjects Filter */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Subjects</Text>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.subjectsRow}
+                    >
+                        {subjects.map(renderSubjectItem)}
                     </ScrollView>
                 </View>
 
-                {/* Learner are viewing */}
-                <CourseRow
-                    title="Learners are viewing"
-                    courses={mockCourses.slice(1, 5)}
-                    onCoursePress={handleCoursePress}
-                    onSeeAllPress={() => navigation.navigate('Search')}
-                />
+                {/* Content Grid */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                        {selectedSubject ? `${selectedSubject} Materials` : 'All Materials'}
+                    </Text>
 
-                {/* Bottom padding */}
-                <View style={styles.bottomPadding} />
+                    <FlatList
+                        data={filteredContent}
+                        renderItem={renderContentCard}
+                        keyExtractor={(item) => item.id.toString()}
+                        numColumns={2}
+                        scrollEnabled={false}
+                        columnWrapperStyle={styles.contentRow}
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Icon name="book-open-variant" size={48} color={colors.textMuted} />
+                                <Text style={styles.emptyText}>No content available</Text>
+                            </View>
+                        }
+                    />
+                </View>
             </ScrollView>
         </View>
     );
@@ -167,123 +231,243 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.backgroundGray,
     },
     header: {
-        backgroundColor: colors.primaryDark,
-        paddingTop: 50,
-        paddingBottom: spacing.lg,
         paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.lg,
     },
     headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: spacing.md,
     },
-    logoContainer: {
+    headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    logoIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 4,
-        backgroundColor: colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
+    logo: {
+        width: 45,
+        height: 45,
+        borderRadius: 22.5,
+        marginRight: spacing.md,
     },
-    logoText: {
+    appName: {
         fontSize: fontSizes.xl,
         fontWeight: '700',
         color: colors.textLight,
     },
-    appName: {
-        fontSize: fontSizes.xxl,
-        fontWeight: '700',
+    classBadge: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: borderRadius.sm,
+        marginTop: 2,
+    },
+    classText: {
+        fontSize: fontSizes.xs,
+        color: colors.textLight,
+        fontWeight: '600',
+    },
+    headerRight: {
+        flexDirection: 'row',
+    },
+    headerIcon: {
+        padding: spacing.sm,
+    },
+    subscriptionBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        marginTop: spacing.md,
+    },
+    subscriptionText: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
         color: colors.textLight,
         marginLeft: spacing.sm,
+        flex: 1,
     },
-    headerActions: {
+    expiryText: {
+        fontSize: fontSizes.sm,
+        color: colors.textLight,
+        opacity: 0.8,
+    },
+    upgradeBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: colors.secondary,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        marginTop: spacing.md,
+    },
+    upgradeLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    headerButton: {
-        padding: spacing.sm,
-        marginLeft: spacing.sm,
-        position: 'relative',
-    },
-    notificationBadge: {
-        position: 'absolute',
-        top: 6,
-        right: 6,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: colors.accent,
-    },
-    searchBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.background,
-        paddingVertical: spacing.md,
-        paddingHorizontal: spacing.lg,
-        borderRadius: borderRadius.round,
-    },
-    searchPlaceholder: {
-        marginLeft: spacing.sm,
+    upgradeText: {
         fontSize: fontSizes.md,
-        color: colors.textSecondary,
+        fontWeight: '700',
+        color: colors.textPrimary,
+        marginLeft: spacing.sm,
     },
-    promoSection: {
-        marginBottom: spacing.xxl,
+    upgradePrice: {
+        fontSize: fontSizes.sm,
+        fontWeight: '600',
+        color: colors.textPrimary,
     },
-    promoHeader: {
+    content: {
+        flex: 1,
+    },
+    section: {
+        marginTop: spacing.lg,
+    },
+    sectionTitle: {
+        fontSize: fontSizes.xl,
+        fontWeight: '700',
+        color: colors.textPrimary,
         paddingHorizontal: spacing.lg,
         marginBottom: spacing.md,
     },
-    promoTitle: {
-        fontSize: fontSizes.xxl,
-        fontWeight: '700',
-        color: colors.textPrimary,
+    subjectsRow: {
+        paddingHorizontal: spacing.lg,
     },
-    promoSubtitle: {
+    subjectChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.background,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: borderRadius.round,
+        marginRight: spacing.sm,
+        ...shadows.light,
+    },
+    subjectText: {
         fontSize: fontSizes.sm,
-        color: colors.textSecondary,
-        marginTop: spacing.xs,
+        fontWeight: '500',
+        color: colors.textPrimary,
+        marginLeft: spacing.xs,
     },
-    promoScroll: {
-        paddingLeft: spacing.lg,
+    subjectTextActive: {
+        color: colors.textLight,
     },
-    promoCard: {
-        marginRight: spacing.md,
-        borderRadius: borderRadius.md,
+    contentRow: {
+        paddingHorizontal: spacing.lg,
+        justifyContent: 'space-between',
+        marginBottom: spacing.md,
+    },
+    contentCard: {
+        width: '48%',
+        backgroundColor: colors.background,
+        borderRadius: borderRadius.lg,
         overflow: 'hidden',
         ...shadows.light,
     },
-    promoImage: {
-        width: 200,
-        height: 120,
+    thumbnailContainer: {
+        position: 'relative',
+    },
+    thumbnail: {
+        width: '100%',
+        height: 100,
         backgroundColor: colors.backgroundGray,
     },
-    promoDuration: {
+    typeBadge: {
         position: 'absolute',
-        bottom: spacing.sm,
-        right: spacing.sm,
+        top: spacing.sm,
+        left: spacing.sm,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        paddingVertical: 2,
         paddingHorizontal: spacing.sm,
-        paddingVertical: 4,
         borderRadius: borderRadius.sm,
     },
-    promoDurationText: {
-        fontSize: fontSizes.xs,
-        color: colors.textLight,
-        marginLeft: 4,
+    pdfBadge: {
+        backgroundColor: colors.error,
     },
-    bottomPadding: {
-        height: 100,
+    videoBadge: {
+        backgroundColor: colors.primary,
+    },
+    typeText: {
+        fontSize: fontSizes.xs,
+        fontWeight: '600',
+        color: colors.textLight,
+        marginLeft: 2,
+    },
+    lockOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    freeBadge: {
+        position: 'absolute',
+        top: spacing.sm,
+        right: spacing.sm,
+        backgroundColor: colors.success,
+        paddingVertical: 2,
+        paddingHorizontal: spacing.sm,
+        borderRadius: borderRadius.sm,
+    },
+    freeText: {
+        fontSize: fontSizes.xs,
+        fontWeight: '700',
+        color: colors.textLight,
+    },
+    contentInfo: {
+        padding: spacing.md,
+    },
+    contentTitle: {
+        fontSize: fontSizes.sm,
+        fontWeight: '600',
+        color: colors.textPrimary,
+        lineHeight: 18,
+    },
+    metaRow: {
+        flexDirection: 'row',
+        marginTop: spacing.sm,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: spacing.md,
+    },
+    metaText: {
+        fontSize: fontSizes.xs,
+        color: colors.textSecondary,
+        marginLeft: 2,
+    },
+    priceRow: {
+        marginTop: spacing.sm,
+    },
+    price: {
+        fontSize: fontSizes.md,
+        fontWeight: '700',
+        color: colors.textPrimary,
+    },
+    priceGreen: {
+        color: colors.success,
+    },
+    subscribeHint: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 2,
+    },
+    subscribeHintText: {
+        fontSize: fontSizes.xs,
+        color: colors.secondary,
+        marginLeft: 2,
+    },
+    emptyState: {
+        alignItems: 'center',
+        padding: spacing.xxxl,
+    },
+    emptyText: {
+        fontSize: fontSizes.md,
+        color: colors.textMuted,
+        marginTop: spacing.md,
     },
 });
 

@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../config/theme';
 
+// Splash Screen
+import SplashScreen from '../screens/SplashScreen';
+
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
@@ -16,7 +19,6 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import HomeScreen from '../screens/main/HomeScreen';
 import SearchScreen from '../screens/main/SearchScreen';
 import MyLearningScreen from '../screens/main/MyLearningScreen';
-import WishlistScreen from '../screens/main/WishlistScreen';
 import AccountScreen from '../screens/main/AccountScreen';
 
 // Course Screens
@@ -30,12 +32,10 @@ import PaymentScreen from '../screens/subscription/PaymentScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Bottom Tab Navigator with Safe Area Support
+// Bottom Tab Navigator for Genii Books
 const MainTabs = () => {
     const insets = useSafeAreaInsets();
 
-    // Calculate bottom padding for 3-button navigation
-    // Minimum padding of 8, or use safe area bottom inset if larger
     const bottomPadding = Platform.OS === 'android'
         ? Math.max(8, insets.bottom)
         : insets.bottom;
@@ -48,28 +48,25 @@ const MainTabs = () => {
                     let iconName;
 
                     switch (route.name) {
-                        case 'Featured':
-                            iconName = focused ? 'star' : 'star-outline';
+                        case 'Home':
+                            iconName = focused ? 'home' : 'home-outline';
                             break;
                         case 'Search':
                             iconName = 'magnify';
                             break;
                         case 'MyLearning':
-                            iconName = focused ? 'play-box' : 'play-box-outline';
-                            break;
-                        case 'Wishlist':
-                            iconName = focused ? 'heart' : 'heart-outline';
+                            iconName = focused ? 'book-open-page-variant' : 'book-open-page-variant-outline';
                             break;
                         case 'Account':
-                            iconName = focused ? 'account' : 'account-outline';
+                            iconName = focused ? 'account-circle' : 'account-circle-outline';
                             break;
                         default:
                             iconName = 'circle';
                     }
 
-                    return <Icon name={iconName} size={24} color={color} />;
+                    return <Icon name={iconName} size={26} color={color} />;
                 },
-                tabBarActiveTintColor: colors.textPrimary,
+                tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.textSecondary,
                 tabBarStyle: {
                     backgroundColor: colors.background,
@@ -78,7 +75,6 @@ const MainTabs = () => {
                     paddingTop: 8,
                     paddingBottom: bottomPadding + 4,
                     height: 60 + bottomPadding,
-                    // Ensure tab bar is above Android navigation
                     position: 'absolute',
                     bottom: 0,
                     left: 0,
@@ -90,18 +86,17 @@ const MainTabs = () => {
                     shadowRadius: 4,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: '500',
                     marginTop: 2,
                 },
-                // Add padding at the bottom of screen content to not be hidden by tab bar
                 tabBarHideOnKeyboard: true,
             })}
         >
             <Tab.Screen
-                name="Featured"
+                name="Home"
                 component={HomeScreen}
-                options={{ tabBarLabel: 'Featured' }}
+                options={{ tabBarLabel: 'Home' }}
             />
             <Tab.Screen
                 name="Search"
@@ -114,11 +109,6 @@ const MainTabs = () => {
                 options={{ tabBarLabel: 'My Learning' }}
             />
             <Tab.Screen
-                name="Wishlist"
-                component={WishlistScreen}
-                options={{ tabBarLabel: 'Wishlist' }}
-            />
-            <Tab.Screen
                 name="Account"
                 component={AccountScreen}
                 options={{ tabBarLabel: 'Account' }}
@@ -129,43 +119,37 @@ const MainTabs = () => {
 
 // Main Navigation
 const Navigation = () => {
-    // You can add auth state logic here
-    const isLoggedIn = true; // For demo, set to true to skip login
-
     return (
         <NavigationContainer>
             <Stack.Navigator
+                initialRouteName="Splash"
                 screenOptions={{
                     headerShown: false,
                     animation: 'slide_from_right',
                 }}
             >
-                {!isLoggedIn ? (
-                    // Auth Stack
-                    <>
-                        <Stack.Screen name="Login" component={LoginScreen} />
-                        <Stack.Screen name="Signup" component={SignupScreen} />
-                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-                    </>
-                ) : (
-                    // Main App Stack
-                    <>
-                        <Stack.Screen name="MainTabs" component={MainTabs} />
-                        <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
-                        <Stack.Screen
-                            name="VideoPlayer"
-                            component={VideoPlayerScreen}
-                            options={{ animation: 'slide_from_bottom' }}
-                        />
-                        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
-                        <Stack.Screen name="Payment" component={PaymentScreen} />
+                {/* Splash Screen */}
+                <Stack.Screen
+                    name="Splash"
+                    component={SplashScreen}
+                    options={{ animation: 'fade' }}
+                />
 
-                        {/* Auth screens accessible from main app */}
-                        <Stack.Screen name="Login" component={LoginScreen} />
-                        <Stack.Screen name="Signup" component={SignupScreen} />
-                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-                    </>
-                )}
+                {/* Auth Stack */}
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Signup" component={SignupScreen} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+
+                {/* Main App Stack */}
+                <Stack.Screen name="MainTabs" component={MainTabs} />
+                <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+                <Stack.Screen
+                    name="VideoPlayer"
+                    component={VideoPlayerScreen}
+                    options={{ animation: 'slide_from_bottom' }}
+                />
+                <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+                <Stack.Screen name="Payment" component={PaymentScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

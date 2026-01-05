@@ -3,10 +3,10 @@ import {
     View,
     Text,
     StyleSheet,
-    ScrollView,
     TouchableOpacity,
     Image,
     StatusBar,
+    ScrollView,
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
@@ -21,18 +21,19 @@ const LoginScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
-    const validateForm = () => {
+    const validate = () => {
         const newErrors = {};
-        if (!email) newErrors.email = 'Email is required';
+        if (!email.trim()) newErrors.email = 'Email is required';
         else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
-        if (!password) newErrors.password = 'Password is required';
+        if (!password.trim()) newErrors.password = 'Password is required';
         else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleLogin = async () => {
-        if (!validateForm()) return;
+        if (!validate()) return;
 
         setLoading(true);
         // Simulate API call
@@ -46,90 +47,81 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
 
-            {/* Header with gradient */}
-            <LinearGradient
-                colors={[colors.primaryDark, colors.primary]}
-                style={styles.header}
-            >
-                <Image
-                    source={{ uri: 'https://www.udemy.com/staticx/udemy/images/v7/logo-udemy-inverted.svg' }}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-                <Text style={styles.headerTitle}>Your App Name</Text>
-                <Text style={styles.headerSubtitle}>Learn on your schedule</Text>
-            </LinearGradient>
-
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.formContainer}
+                style={styles.keyboardView}
             >
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    <Text style={styles.title}>Log in to your account</Text>
-
-                    <Input
-                        label="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Enter your email"
-                        keyboardType="email-address"
-                        leftIcon="email-outline"
-                        error={errors.email}
-                    />
-
-                    <Input
-                        label="Password"
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="Enter your password"
-                        secureTextEntry
-                        leftIcon="lock-outline"
-                        error={errors.password}
-                    />
-
-                    <TouchableOpacity
-                        style={styles.forgotPassword}
-                        onPress={() => navigation.navigate('ForgotPassword')}
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header with Logo */}
+                    <LinearGradient
+                        colors={[colors.primaryDark, colors.primary]}
+                        style={styles.header}
                     >
-                        <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-                    </TouchableOpacity>
+                        <Image
+                            source={require('../../assets/logo.jpeg')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.appName}>Genii Books</Text>
+                        <Text style={styles.tagline}>Make Learning Simple</Text>
+                    </LinearGradient>
 
-                    <Button
-                        title="Log in"
-                        onPress={handleLogin}
-                        loading={loading}
-                        fullWidth
-                        style={styles.loginButton}
-                    />
+                    {/* Login Form */}
+                    <View style={styles.formContainer}>
+                        <Text style={styles.welcomeText}>Welcome Back!</Text>
+                        <Text style={styles.subtitle}>Sign in to continue learning</Text>
 
-                    <View style={styles.dividerContainer}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>OR</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
+                        <Input
+                            label="Email"
+                            value={email}
+                            onChangeText={(v) => {
+                                setEmail(v);
+                                if (errors.email) setErrors(prev => ({ ...prev, email: null }));
+                            }}
+                            placeholder="Enter your email"
+                            keyboardType="email-address"
+                            leftIcon="email-outline"
+                            error={errors.email}
+                        />
 
-                    {/* Social Login Buttons */}
-                    <TouchableOpacity style={styles.socialButton}>
-                        <Icon name="google" size={24} color="#DB4437" />
-                        <Text style={styles.socialButtonText}>Continue with Google</Text>
-                    </TouchableOpacity>
+                        <Input
+                            label="Password"
+                            value={password}
+                            onChangeText={(v) => {
+                                setPassword(v);
+                                if (errors.password) setErrors(prev => ({ ...prev, password: null }));
+                            }}
+                            placeholder="Enter your password"
+                            secureTextEntry
+                            leftIcon="lock-outline"
+                            error={errors.password}
+                        />
 
-                    <TouchableOpacity style={[styles.socialButton, styles.facebookButton]}>
-                        <Icon name="facebook" size={24} color="#4267B2" />
-                        <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.socialButton}>
-                        <Icon name="apple" size={24} color={colors.textPrimary} />
-                        <Text style={styles.socialButtonText}>Continue with Apple</Text>
-                    </TouchableOpacity>
-
-                    {/* Sign up link */}
-                    <View style={styles.signupContainer}>
-                        <Text style={styles.signupText}>Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                            <Text style={styles.signupLink}>Sign up</Text>
+                        <TouchableOpacity
+                            style={styles.forgotButton}
+                            onPress={() => navigation.navigate('ForgotPassword')}
+                        >
+                            <Text style={styles.forgotText}>Forgot Password?</Text>
                         </TouchableOpacity>
+
+                        <Button
+                            title="Log In"
+                            onPress={handleLogin}
+                            loading={loading}
+                            fullWidth
+                            style={styles.loginButton}
+                        />
+
+                        {/* Sign Up Link */}
+                        <View style={styles.signupContainer}>
+                            <Text style={styles.signupText}>New to Genii Books? </Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                                <Text style={styles.signupLink}>Create Account</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -142,22 +134,33 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
+    keyboardView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
     header: {
         paddingTop: 60,
         paddingBottom: 40,
         alignItems: 'center',
+        borderBottomLeftRadius: borderRadius.xxl,
+        borderBottomRightRadius: borderRadius.xxl,
     },
     logo: {
-        width: 50,
-        height: 50,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 3,
+        borderColor: colors.textLight,
     },
-    headerTitle: {
+    appName: {
         fontSize: fontSizes.title,
         fontWeight: '700',
         color: colors.textLight,
-        marginTop: spacing.sm,
+        marginTop: spacing.md,
     },
-    headerSubtitle: {
+    tagline: {
         fontSize: fontSizes.md,
         color: colors.textLight,
         opacity: 0.9,
@@ -165,71 +168,37 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         flex: 1,
-    },
-    scrollContent: {
         padding: spacing.xl,
-        paddingBottom: 40,
+        paddingTop: spacing.xxl,
     },
-    title: {
-        fontSize: fontSizes.xxl,
+    welcomeText: {
+        fontSize: fontSizes.xxxl,
         fontWeight: '700',
         color: colors.textPrimary,
-        marginBottom: spacing.xxl,
-        textAlign: 'center',
     },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginTop: -spacing.md,
-        marginBottom: spacing.xl,
-    },
-    forgotPasswordText: {
-        color: colors.primary,
+    subtitle: {
         fontSize: fontSizes.md,
-        fontWeight: '600',
+        color: colors.textSecondary,
+        marginTop: spacing.xs,
+        marginBottom: spacing.xxl,
+    },
+    forgotButton: {
+        alignSelf: 'flex-end',
+        marginBottom: spacing.lg,
+    },
+    forgotText: {
+        fontSize: fontSizes.sm,
+        color: colors.primary,
+        fontWeight: '500',
     },
     loginButton: {
-        marginTop: spacing.md,
-    },
-    dividerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: spacing.xl,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: colors.border,
-    },
-    dividerText: {
-        marginHorizontal: spacing.lg,
-        color: colors.textSecondary,
-        fontSize: fontSizes.sm,
-        fontWeight: '600',
-    },
-    socialButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: spacing.md,
-        paddingHorizontal: spacing.xl,
-        borderRadius: borderRadius.sm,
-        borderWidth: 1,
-        borderColor: colors.border,
-        marginBottom: spacing.md,
-    },
-    facebookButton: {
-        backgroundColor: colors.background,
-    },
-    socialButtonText: {
-        marginLeft: spacing.md,
-        fontSize: fontSizes.md,
-        fontWeight: '600',
-        color: colors.textPrimary,
+        marginTop: spacing.sm,
     },
     signupContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: spacing.xl,
+        marginTop: 'auto',
+        paddingTop: spacing.xxl,
     },
     signupText: {
         fontSize: fontSizes.md,

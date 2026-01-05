@@ -1,40 +1,50 @@
-// Udemy Clone Theme Configuration
-// Based on actual Udemy app color scheme
+// Genii Books Theme Configuration
+// Teal/Turquoise color scheme for educational app
 
 export const colors = {
-    // Primary Colors
-    primary: '#A435F0',        // Udemy Purple
-    primaryDark: '#5624D0',    // Dark Purple
-    primaryLight: '#C77DFF',   // Light Purple
+    // Primary Colors (Teal)
+    primary: '#1ABC9C',           // Main teal
+    primaryDark: '#16A085',       // Dark teal
+    primaryLight: '#48C9B0',      // Light teal
+
+    // Secondary Colors (Yellow)
+    secondary: '#F1C40F',         // Yellow accent
+    secondaryDark: '#D4AC0D',     // Dark yellow
+    secondaryLight: '#F7DC6F',    // Light yellow
 
     // Accent Colors
-    accent: '#EC5252',         // Sale/Discount Red
-    success: '#1E6055',        // Success Green
-    warning: '#F3CA5F',        // Warning Yellow
+    accent: '#E91E63',            // Pink for alerts/badges
+    success: '#27AE60',           // Green for success
+    warning: '#F39C12',           // Orange for warnings
+    error: '#E74C3C',             // Red for errors
 
     // Background Colors
     background: '#FFFFFF',
-    backgroundDark: '#1C1D1F',
-    backgroundGray: '#F7F9FA',
+    backgroundDark: '#2C3E50',
+    backgroundGray: '#ECF0F1',
+    backgroundLight: '#F8F9FA',
     cardBackground: '#FFFFFF',
 
     // Text Colors
-    textPrimary: '#1C1D1F',
-    textSecondary: '#6A6F73',
+    textPrimary: '#2C3E50',       // Dark blue-gray
+    textSecondary: '#7F8C8D',     // Gray
     textLight: '#FFFFFF',
-    textMuted: '#8C8C8C',
+    textMuted: '#95A5A6',
 
     // Border Colors
-    border: '#D1D7DC',
-    borderLight: '#E4E8EB',
+    border: '#BDC3C7',
+    borderLight: '#ECF0F1',
 
-    // Rating Colors
-    rating: '#E59819',
-    ratingBackground: '#ECEB98',
+    // Class-specific Colors
+    class10: '#3498DB',           // Blue
+    class11: '#9B59B6',           // Purple
+    class12: '#E67E22',           // Orange
+    classNeet: '#1ABC9C',         // Teal
 
     // Status Colors
-    online: '#4DAA57',
-    offline: '#6A6F73',
+    subscribed: '#27AE60',
+    locked: '#E74C3C',
+    free: '#3498DB',
 
     // Other
     overlay: 'rgba(0, 0, 0, 0.6)',
@@ -42,10 +52,10 @@ export const colors = {
 };
 
 export const fonts = {
-    regular: 'Roboto-Regular',
-    medium: 'Roboto-Medium',
-    bold: 'Roboto-Bold',
-    light: 'Roboto-Light',
+    regular: 'System',
+    medium: 'System',
+    bold: 'System',
+    light: 'System',
 };
 
 export const fontSizes = {
@@ -74,6 +84,7 @@ export const borderRadius = {
     md: 8,
     lg: 12,
     xl: 16,
+    xxl: 24,
     round: 50,
 };
 
@@ -101,6 +112,14 @@ export const shadows = {
     },
 };
 
+// Class options for registration
+export const classOptions = [
+    { id: '10', label: 'Class 10', color: colors.class10, icon: 'numeric-10-box' },
+    { id: '11', label: 'Class 11', color: colors.class11, icon: 'numeric-11-box' },
+    { id: '12', label: 'Class 12', color: colors.class12, icon: 'numeric-12-box' },
+    { id: 'neet', label: 'NEET', color: colors.classNeet, icon: 'medical-bag' },
+];
+
 export default {
     colors,
     fonts,
@@ -108,4 +127,5 @@ export default {
     spacing,
     borderRadius,
     shadows,
+    classOptions,
 };

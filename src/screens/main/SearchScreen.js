@@ -3,207 +3,208 @@ import {
     View,
     Text,
     StyleSheet,
-    TextInput,
+    ScrollView,
     TouchableOpacity,
+    TextInput,
     FlatList,
     StatusBar,
-    ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontSizes, spacing, borderRadius } from '../../config/theme';
-import { mockCourses, mockCategories } from '../../data/mockData';
-import CourseCard from '../../components/course/CourseCard';
-import { CategoryItem } from '../../components/home/CategoryCarousel';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, fontSizes, spacing, borderRadius, shadows, classOptions } from '../../config/theme';
+import { mockUser, mockSubjects, mockContent } from '../../data/mockData';
 
-const SearchScreen = ({ navigation, route }) => {
+const SearchScreen = ({ navigation }) => {
+    const insets = useSafeAreaInsets();
+    const [user] = useState(mockUser);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
-    const [recentSearches] = useState([
-        'Web Development',
-        'Python',
-        'React Native',
-        'Machine Learning',
-        'UI/UX Design',
-    ]);
-    const [selectedFilter, setSelectedFilter] = useState('all');
+    const [searchResults, setSearchResults] = useState([]);
+    const [recentSearches] = useState(['Physics Notes', 'Chemistry Reactions', 'Mathematics']);
 
-    const filters = [
-        { id: 'all', label: 'All' },
-        { id: 'free', label: 'Free' },
-        { id: 'paid', label: 'Paid' },
-        { id: 'beginner', label: 'Beginner' },
-        { id: 'intermediate', label: 'Intermediate' },
-        { id: 'advanced', label: 'Advanced' },
-    ];
+    const subjects = mockSubjects[user.class] || [];
+    const isSubscribed = user.subscription?.active;
 
-    const filteredCourses = mockCourses.filter((course) => {
-        if (!searchQuery) return true;
-        return course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    });
-
-    const handleCoursePress = (course) => {
-        navigation.navigate('CourseDetail', { course });
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        if (query.length > 1) {
+            const results = mockContent.filter(item =>
+                item.targetClass.includes(user.class) &&
+                (item.title.toLowerCase().includes(query.toLowerCase()) ||
+                    item.subject.toLowerCase().includes(query.toLowerCase()))
+            );
+            setSearchResults(results);
+        } else {
+            setSearchResults([]);
+        }
     };
 
-    const handleCategoryPress = (category) => {
-        setSearchQuery(category.name);
-        setIsSearching(true);
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        setSearchResults([]);
     };
 
-    const handleRecentSearch = (search) => {
-        setSearchQuery(search);
-        setIsSearching(true);
+    const handleContentPress = (item) => {
+        if (item.isFree || isSubscribed) {
+            navigation.navigate('VideoPlayer', { content: item });
+        } else {
+            navigation.navigate('Subscription');
+        }
     };
 
-    const renderSearchResults = () => (
-        <View style={styles.resultsContainer}>
-            {/* Filters */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
-            >
-                {filters.map((filter) => (
-                    <TouchableOpacity
-                        key={filter.id}
-                        style={[
-                            styles.filterChip,
-                            selectedFilter === filter.id && styles.filterChipActive,
-                        ]}
-                        onPress={() => setSelectedFilter(filter.id)}
-                    >
-                        <Text
-                            style={[
-                                styles.filterChipText,
-                                selectedFilter === filter.id && styles.filterChipTextActive,
-                            ]}
-                        >
-                            {filter.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-
-            {/* Results count */}
-            <Text style={styles.resultsCount}>
-                {filteredCourses.length} results for "{searchQuery}"
-            </Text>
-
-            {/* Results list */}
-            <FlatList
-                data={filteredCourses}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <CourseCard
-                        course={item}
-                        onPress={() => handleCoursePress(item)}
-                        variant="compact"
-                    />
-                )}
-                contentContainerStyle={styles.resultsList}
-                showsVerticalScrollIndicator={false}
-            />
-        </View>
+    const renderSubjectCard = (subject) => (
+        <TouchableOpacity
+            key={subject.id}
+            style={styles.subjectCard}
+            onPress={() => handleSearch(subject.name)}
+        >
+            <View style={[styles.subjectIcon, { backgroundColor: subject.color + '20' }]}>
+                <Icon name={subject.icon} size={28} color={subject.color} />
+            </View>
+            <Text style={styles.subjectName}>{subject.name}</Text>
+        </TouchableOpacity>
     );
 
-    const renderInitialState = () => (
-        <ScrollView style={styles.initialContainer} showsVerticalScrollIndicator={false}>
-            {/* Recent Searches */}
-            {recentSearches.length > 0 && (
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Recent Searches</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.clearText}>Clear</Text>
-                        </TouchableOpacity>
-                    </View>
-                    {recentSearches.map((search, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={styles.recentItem}
-                            onPress={() => handleRecentSearch(search)}
-                        >
-                            <Icon name="history" size={20} color={colors.textSecondary} />
-                            <Text style={styles.recentText}>{search}</Text>
-                            <Icon name="arrow-top-left" size={18} color={colors.textMuted} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            )}
-
-            {/* Top Categories */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Top Categories</Text>
-                <View style={styles.categoriesGrid}>
-                    {mockCategories.map((category) => (
-                        <TouchableOpacity
-                            key={category.id}
-                            style={styles.categoryCard}
-                            onPress={() => handleCategoryPress(category)}
-                        >
-                            <CategoryItem category={category} variant="horizontal" />
-                        </TouchableOpacity>
-                    ))}
-                </View>
+    const renderResultItem = ({ item }) => (
+        <TouchableOpacity
+            style={styles.resultCard}
+            onPress={() => handleContentPress(item)}
+        >
+            <View style={[styles.typeBadge, item.type === 'pdf' ? styles.pdfBadge : styles.videoBadge]}>
+                <Icon
+                    name={item.type === 'pdf' ? 'file-document' : 'play-circle'}
+                    size={16}
+                    color={colors.textLight}
+                />
             </View>
 
-            {/* Trending */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Trending Searches</Text>
-                <View style={styles.trendingContainer}>
-                    {['JavaScript', 'React', 'Data Science', 'AWS', 'Python'].map((term, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={styles.trendingChip}
-                            onPress={() => handleRecentSearch(term)}
-                        >
-                            <Icon name="trending-up" size={14} color={colors.primary} />
-                            <Text style={styles.trendingText}>{term}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-        </ScrollView>
-    );
-
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-
-            {/* Search Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Icon name="arrow-left" size={24} color={colors.textPrimary} />
-                </TouchableOpacity>
-
-                <View style={styles.searchInputContainer}>
-                    <Icon name="magnify" size={20} color={colors.textSecondary} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search for anything"
-                        placeholderTextColor={colors.textMuted}
-                        value={searchQuery}
-                        onChangeText={(text) => {
-                            setSearchQuery(text);
-                            setIsSearching(text.length > 0);
-                        }}
-                        autoFocus
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => {
-                            setSearchQuery('');
-                            setIsSearching(false);
-                        }}>
-                            <Icon name="close-circle" size={20} color={colors.textSecondary} />
-                        </TouchableOpacity>
+            <View style={styles.resultInfo}>
+                <Text style={styles.resultTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={styles.resultSubject}>{item.subject}</Text>
+                <View style={styles.resultMeta}>
+                    <Icon name="star" size={14} color={colors.secondary} />
+                    <Text style={styles.resultRating}>{item.rating}</Text>
+                    {!item.isFree && !isSubscribed && (
+                        <View style={styles.lockedBadge}>
+                            <Icon name="lock" size={12} color={colors.textLight} />
+                            <Text style={styles.lockedText}>Premium</Text>
+                        </View>
+                    )}
+                    {item.isFree && (
+                        <View style={styles.freeBadge}>
+                            <Text style={styles.freeText}>FREE</Text>
+                        </View>
                     )}
                 </View>
             </View>
 
-            {/* Content */}
-            {isSearching ? renderSearchResults() : renderInitialState()}
+            <Icon name="chevron-right" size={22} color={colors.textMuted} />
+        </TouchableOpacity>
+    );
+
+    return (
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
+
+            {/* Header */}
+            <LinearGradient
+                colors={[colors.primaryDark, colors.primary]}
+                style={[styles.header, { paddingTop: insets.top + spacing.md }]}
+            >
+                <Text style={styles.headerTitle}>Search</Text>
+
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <Icon name="magnify" size={20} color={colors.textMuted} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search PDFs, videos..."
+                        placeholderTextColor={colors.textMuted}
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={handleClearSearch}>
+                            <Icon name="close-circle" size={18} color={colors.textMuted} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </LinearGradient>
+
+            {searchResults.length > 0 ? (
+                /* Search Results */
+                <FlatList
+                    data={searchResults}
+                    renderItem={renderResultItem}
+                    keyExtractor={(item) => item.id.toString()}
+                    contentContainerStyle={styles.resultsList}
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={
+                        <Text style={styles.resultsCount}>
+                            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+                        </Text>
+                    }
+                />
+            ) : (
+                <ScrollView
+                    style={styles.content}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                >
+                    {/* Recent Searches */}
+                    {searchQuery.length === 0 && recentSearches.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Recent Searches</Text>
+                            {recentSearches.map((search, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.recentItem}
+                                    onPress={() => handleSearch(search)}
+                                >
+                                    <Icon name="history" size={18} color={colors.textMuted} />
+                                    <Text style={styles.recentText}>{search}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Browse by Subject */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Browse by Subject</Text>
+                        <View style={styles.subjectsGrid}>
+                            {subjects.map(renderSubjectCard)}
+                        </View>
+                    </View>
+
+                    {/* Content Types */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Content Types</Text>
+                        <View style={styles.typesRow}>
+                            <TouchableOpacity
+                                style={styles.typeCard}
+                                onPress={() => handleSearch('pdf')}
+                            >
+                                <View style={[styles.typeIcon, { backgroundColor: colors.error + '20' }]}>
+                                    <Icon name="file-document" size={32} color={colors.error} />
+                                </View>
+                                <Text style={styles.typeName}>PDFs</Text>
+                                <Text style={styles.typeCount}>Notes & Sheets</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.typeCard}
+                                onPress={() => handleSearch('video')}
+                            >
+                                <View style={[styles.typeIcon, { backgroundColor: colors.primary + '20' }]}>
+                                    <Icon name="play-circle" size={32} color={colors.primary} />
+                                </View>
+                                <Text style={styles.typeName}>Videos</Text>
+                                <Text style={styles.typeCount}>Lectures & Tutorials</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+            )}
         </View>
     );
 };
@@ -211,139 +212,193 @@ const SearchScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.backgroundGray,
     },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingTop: 50,
-        paddingBottom: spacing.md,
         paddingHorizontal: spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
+        paddingBottom: spacing.lg,
     },
-    backButton: {
-        marginRight: spacing.md,
+    headerTitle: {
+        fontSize: fontSizes.xxxl,
+        fontWeight: '700',
+        color: colors.textLight,
+        marginBottom: spacing.md,
     },
-    searchInputContainer: {
-        flex: 1,
+    searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.backgroundGray,
+        backgroundColor: colors.background,
         paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.round,
+        borderRadius: borderRadius.md,
+        height: 48,
     },
     searchInput: {
         flex: 1,
-        marginLeft: spacing.sm,
         fontSize: fontSizes.md,
         color: colors.textPrimary,
+        marginLeft: spacing.sm,
+        paddingVertical: 0,
     },
-    initialContainer: {
+    content: {
         flex: 1,
     },
     section: {
-        paddingVertical: spacing.lg,
+        marginTop: spacing.xl,
         paddingHorizontal: spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: spacing.md,
     },
     sectionTitle: {
-        fontSize: fontSizes.xl,
+        fontSize: fontSizes.lg,
         fontWeight: '700',
         color: colors.textPrimary,
-    },
-    clearText: {
-        fontSize: fontSizes.md,
-        color: colors.primary,
-        fontWeight: '600',
+        marginBottom: spacing.md,
     },
     recentItem: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: spacing.md,
-    },
-    recentText: {
-        flex: 1,
-        marginLeft: spacing.md,
-        fontSize: fontSizes.md,
-        color: colors.textPrimary,
-    },
-    categoriesGrid: {
-        marginTop: spacing.sm,
-    },
-    categoryCard: {
-        marginBottom: 0,
-    },
-    trendingContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginTop: spacing.md,
-    },
-    trendingChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.backgroundGray,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.round,
-        marginRight: spacing.sm,
-        marginBottom: spacing.sm,
-    },
-    trendingText: {
-        fontSize: fontSizes.sm,
-        color: colors.textPrimary,
-        marginLeft: spacing.xs,
-    },
-    // Results
-    resultsContainer: {
-        flex: 1,
-    },
-    filtersContainer: {
-        maxHeight: 50,
         borderBottomWidth: 1,
         borderBottomColor: colors.borderLight,
     },
-    filtersContent: {
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
+    recentText: {
+        fontSize: fontSizes.md,
+        color: colors.textPrimary,
+        marginLeft: spacing.md,
     },
-    filterChip: {
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.round,
-        backgroundColor: colors.backgroundGray,
-        marginRight: spacing.sm,
-        borderWidth: 1,
-        borderColor: colors.border,
+    subjectsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginHorizontal: -spacing.xs,
     },
-    filterChipActive: {
-        backgroundColor: colors.textPrimary,
-        borderColor: colors.textPrimary,
+    subjectCard: {
+        width: '33.33%',
+        padding: spacing.xs,
+        alignItems: 'center',
+        marginBottom: spacing.md,
     },
-    filterChipText: {
+    subjectIcon: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: spacing.sm,
+    },
+    subjectName: {
         fontSize: fontSizes.sm,
         color: colors.textPrimary,
-        fontWeight: '500',
+        textAlign: 'center',
     },
-    filterChipTextActive: {
-        color: colors.textLight,
+    typesRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
-    resultsCount: {
-        fontSize: fontSizes.lg,
-        fontWeight: '700',
-        color: colors.textPrimary,
+    typeCard: {
+        width: '48%',
+        backgroundColor: colors.background,
         padding: spacing.lg,
+        borderRadius: borderRadius.lg,
+        alignItems: 'center',
+        ...shadows.light,
+    },
+    typeIcon: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: spacing.md,
+    },
+    typeName: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
+        color: colors.textPrimary,
+    },
+    typeCount: {
+        fontSize: fontSizes.xs,
+        color: colors.textSecondary,
+        marginTop: 2,
     },
     resultsList: {
-        paddingHorizontal: spacing.lg,
+        padding: spacing.lg,
+        paddingBottom: 100,
+    },
+    resultsCount: {
+        fontSize: fontSizes.sm,
+        color: colors.textSecondary,
+        marginBottom: spacing.md,
+    },
+    resultCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.background,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        marginBottom: spacing.sm,
+        ...shadows.light,
+    },
+    typeBadge: {
+        width: 40,
+        height: 40,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: spacing.md,
+    },
+    pdfBadge: {
+        backgroundColor: colors.error,
+    },
+    videoBadge: {
+        backgroundColor: colors.primary,
+    },
+    resultInfo: {
+        flex: 1,
+    },
+    resultTitle: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
+        color: colors.textPrimary,
+        lineHeight: 18,
+    },
+    resultSubject: {
+        fontSize: fontSizes.xs,
+        color: colors.textSecondary,
+        marginTop: 2,
+    },
+    resultMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: spacing.sm,
+    },
+    resultRating: {
+        fontSize: fontSizes.xs,
+        color: colors.textSecondary,
+        marginLeft: 2,
+        marginRight: spacing.md,
+    },
+    lockedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.error,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: borderRadius.sm,
+    },
+    lockedText: {
+        fontSize: fontSizes.xs,
+        color: colors.textLight,
+        fontWeight: '600',
+        marginLeft: 2,
+    },
+    freeBadge: {
+        backgroundColor: colors.success,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: borderRadius.sm,
+    },
+    freeText: {
+        fontSize: fontSizes.xs,
+        color: colors.textLight,
+        fontWeight: '600',
     },
 });
 

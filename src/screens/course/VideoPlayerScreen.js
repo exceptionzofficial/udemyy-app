@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,6 +8,8 @@ import {
     Dimensions,
     FlatList,
     ScrollView,
+    NativeModules,
+    Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontSizes, spacing, borderRadius } from '../../config/theme';
@@ -15,7 +17,7 @@ import { colors, fontSizes, spacing, borderRadius } from '../../config/theme';
 const { width, height } = Dimensions.get('window');
 
 const VideoPlayerScreen = ({ navigation, route }) => {
-    const { course, lecture } = route.params || {};
+    const { course, lecture, content } = route.params || {};
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -25,6 +27,18 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     const [currentLecture, setCurrentLecture] = useState(
         lecture || course?.sections?.[0]?.lectures?.[0]
     );
+
+    // Enable content security (prevent screenshots/screen recording)
+    useEffect(() => {
+        if (Platform.OS === 'android' && NativeModules.ContentSecurityModule) {
+            NativeModules.ContentSecurityModule.enableSecureMode();
+        }
+        return () => {
+            if (Platform.OS === 'android' && NativeModules.ContentSecurityModule) {
+                NativeModules.ContentSecurityModule.disableSecureMode();
+            }
+        };
+    }, []);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
