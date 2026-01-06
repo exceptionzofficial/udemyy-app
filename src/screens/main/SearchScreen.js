@@ -12,18 +12,25 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fontSizes, spacing, borderRadius, shadows, classOptions } from '../../config/theme';
-import { mockUser, mockSubjects, mockContent } from '../../data/mockData';
+import { colors, fontSizes, spacing, borderRadius, shadows } from '../../config/theme';
+import { mockUser, mockContent, hasAccess, getContentPrice, subjectFilters } from '../../data/mockData';
+
+// Subject cards for browsing
+const subjectCards = [
+    { id: 'physics', name: 'Physics', icon: 'atom', color: '#3498DB' },
+    { id: 'chemistry', name: 'Chemistry', icon: 'flask', color: '#27AE60' },
+    { id: 'mathematics', name: 'Mathematics', icon: 'calculator', color: '#E74C3C' },
+    { id: 'biology', name: 'Biology', icon: 'dna', color: '#9B59B6' },
+    { id: 'english', name: 'English', icon: 'book-open-variant', color: '#E67E22' },
+    { id: 'science', name: 'Science', icon: 'beaker', color: '#1ABC9C' },
+];
 
 const SearchScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const [user] = useState(mockUser);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [recentSearches] = useState(['Physics Notes', 'Chemistry Reactions', 'Mathematics']);
-
-    const subjects = mockSubjects[user.class] || [];
-    const isSubscribed = user.subscription?.active;
+    const [recentSearches] = useState(['Physics Notes', 'Chemistry', 'Mathematics']);
 
     const handleSearch = (query) => {
         setSearchQuery(query);
@@ -45,7 +52,8 @@ const SearchScreen = ({ navigation }) => {
     };
 
     const handleContentPress = (item) => {
-        if (item.isFree || isSubscribed) {
+        const isLocked = !hasAccess(user, item);
+        if (!isLocked) {
             navigation.navigate('VideoPlayer', { content: item });
         } else {
             navigation.navigate('Subscription');
@@ -65,42 +73,46 @@ const SearchScreen = ({ navigation }) => {
         </TouchableOpacity>
     );
 
-    const renderResultItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.resultCard}
-            onPress={() => handleContentPress(item)}
-        >
-            <View style={[styles.typeBadge, item.type === 'pdf' ? styles.pdfBadge : styles.videoBadge]}>
-                <Icon
-                    name={item.type === 'pdf' ? 'file-document' : 'play-circle'}
-                    size={16}
-                    color={colors.textLight}
-                />
-            </View>
+    const renderResultItem = ({ item }) => {
+        const isLocked = !hasAccess(user, item);
+        const price = getContentPrice(item.type);
 
-            <View style={styles.resultInfo}>
-                <Text style={styles.resultTitle} numberOfLines={2}>{item.title}</Text>
-                <Text style={styles.resultSubject}>{item.subject}</Text>
-                <View style={styles.resultMeta}>
-                    <Icon name="star" size={14} color={colors.secondary} />
-                    <Text style={styles.resultRating}>{item.rating}</Text>
-                    {!item.isFree && !isSubscribed && (
-                        <View style={styles.lockedBadge}>
-                            <Icon name="lock" size={12} color={colors.textLight} />
-                            <Text style={styles.lockedText}>Premium</Text>
-                        </View>
-                    )}
-                    {item.isFree && (
-                        <View style={styles.freeBadge}>
-                            <Text style={styles.freeText}>FREE</Text>
-                        </View>
-                    )}
+        return (
+            <TouchableOpacity
+                style={styles.resultCard}
+                onPress={() => handleContentPress(item)}
+            >
+                <View style={[styles.typeBadge, item.type === 'pdf' ? styles.pdfBadge : styles.videoBadge]}>
+                    <Icon
+                        name={item.type === 'pdf' ? 'file-document' : 'play-circle'}
+                        size={16}
+                        color={colors.textLight}
+                    />
                 </View>
-            </View>
 
-            <Icon name="chevron-right" size={22} color={colors.textMuted} />
-        </TouchableOpacity>
-    );
+                <View style={styles.resultInfo}>
+                    <Text style={styles.resultTitle} numberOfLines={2}>{item.title}</Text>
+                    <Text style={styles.resultSubject}>{item.subject} | {item.board === 'state' ? 'State Board' : 'CBSE'}</Text>
+                    <View style={styles.resultMeta}>
+                        <Icon name="star" size={14} color={colors.secondary} />
+                        <Text style={styles.resultRating}>{item.rating}</Text>
+                        {isLocked && !item.isFree && (
+                            <View style={styles.priceBadge}>
+                                <Text style={styles.priceText}>Rs.{price}</Text>
+                            </View>
+                        )}
+                        {item.isFree && (
+                            <View style={styles.freeBadge}>
+                                <Text style={styles.freeText}>FREE</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                <Icon name="chevron-right" size={22} color={colors.textMuted} />
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -172,7 +184,7 @@ const SearchScreen = ({ navigation }) => {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Browse by Subject</Text>
                         <View style={styles.subjectsGrid}>
-                            {subjects.map(renderSubjectCard)}
+                            {subjectCards.map(renderSubjectCard)}
                         </View>
                     </View>
 
@@ -375,19 +387,16 @@ const styles = StyleSheet.create({
         marginLeft: 2,
         marginRight: spacing.md,
     },
-    lockedBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.error,
+    priceBadge: {
+        backgroundColor: colors.secondary,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
         borderRadius: borderRadius.sm,
     },
-    lockedText: {
+    priceText: {
         fontSize: fontSizes.xs,
-        color: colors.textLight,
+        color: colors.textPrimary,
         fontWeight: '600',
-        marginLeft: 2,
     },
     freeBadge: {
         backgroundColor: colors.success,

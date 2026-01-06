@@ -44,7 +44,6 @@ const MyLearningScreen = ({ navigation }) => {
     const tabs = [
         { id: 'all', label: 'All' },
         { id: 'inProgress', label: 'In Progress' },
-        { id: 'downloaded', label: 'Downloaded' },
     ];
 
     const renderContentItem = ({ item }) => (

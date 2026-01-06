@@ -8,30 +8,28 @@ import {
     StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontSizes, spacing, borderRadius, shadows } from '../../config/theme';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 
 const PaymentScreen = ({ navigation, route }) => {
-    const { course, plan } = route.params || {};
-    const [paymentMethod, setPaymentMethod] = useState('card');
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiry, setExpiry] = useState('');
-    const [cvv, setCvv] = useState('');
+    const { type, content, plan, price: passedPrice } = route.params || {};
+    const [paymentMethod, setPaymentMethod] = useState('upi');
     const [loading, setLoading] = useState(false);
 
-    const item = plan || course;
-    const itemType = plan ? 'subscription' : 'course';
-    const price = item?.price || 0;
+    // Determine what we're purchasing
+    const isSinglePurchase = type === 'single';
+    const itemName = isSinglePurchase
+        ? content?.title || 'Content'
+        : plan?.name || 'Subscription Plan';
+    const price = passedPrice || plan?.price || content?.price || 0;
 
-    const formatPrice = (p) => '₹' + p.toLocaleString('en-IN');
+    const formatPrice = (p) => 'Rs.' + (p || 0).toLocaleString('en-IN');
 
     const paymentMethods = [
-        { id: 'card', label: 'Credit/Debit Card', icon: 'credit-card-outline' },
         { id: 'upi', label: 'UPI', icon: 'cellphone' },
+        { id: 'card', label: 'Credit/Debit Card', icon: 'credit-card-outline' },
         { id: 'netbanking', label: 'Net Banking', icon: 'bank-outline' },
-        { id: 'wallet', label: 'Wallet', icon: 'wallet-outline' },
     ];
 
     const handlePayment = async () => {
@@ -39,7 +37,8 @@ const PaymentScreen = ({ navigation, route }) => {
         // Simulate payment processing
         setTimeout(() => {
             setLoading(false);
-            navigation.navigate('PaymentSuccess', { item, itemType });
+            // Navigate back to home with success message
+            navigation.navigate('MainTabs');
         }, 2000);
     };
 
@@ -62,19 +61,24 @@ const PaymentScreen = ({ navigation, route }) => {
                     <Text style={styles.sectionTitle}>Order Summary</Text>
                     <View style={styles.orderCard}>
                         <View style={styles.orderItem}>
-                            <Text style={styles.orderLabel}>
-                                {itemType === 'subscription' ? `${item.name} Plan` : item.title}
-                            </Text>
+                            <View style={styles.orderInfo}>
+                                <Icon
+                                    name={isSinglePurchase
+                                        ? (content?.type === 'pdf' ? 'file-document' : 'play-circle')
+                                        : 'crown'
+                                    }
+                                    size={20}
+                                    color={colors.primary}
+                                />
+                                <Text style={styles.orderLabel} numberOfLines={2}>
+                                    {itemName}
+                                </Text>
+                            </View>
                             <Text style={styles.orderPrice}>{formatPrice(price)}</Text>
                         </View>
 
-                        {course?.originalPrice > course?.price && (
-                            <View style={styles.orderItem}>
-                                <Text style={styles.orderLabel}>Discount</Text>
-                                <Text style={styles.discountPrice}>
-                                    -{formatPrice(course.originalPrice - course.price)}
-                                </Text>
-                            </View>
+                        {!isSinglePurchase && (
+                            <Text style={styles.durationText}>Valid for 1 Year</Text>
                         )}
 
                         <View style={styles.divider} />
@@ -109,42 +113,6 @@ const PaymentScreen = ({ navigation, route }) => {
                     ))}
                 </View>
 
-                {/* Card Details */}
-                {paymentMethod === 'card' && (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Card Details</Text>
-                        <Input
-                            label="Card Number"
-                            value={cardNumber}
-                            onChangeText={setCardNumber}
-                            placeholder="1234 5678 9012 3456"
-                            keyboardType="numeric"
-                            leftIcon="credit-card-outline"
-                        />
-                        <View style={styles.row}>
-                            <View style={styles.halfInput}>
-                                <Input
-                                    label="Expiry Date"
-                                    value={expiry}
-                                    onChangeText={setExpiry}
-                                    placeholder="MM/YY"
-                                    keyboardType="numeric"
-                                />
-                            </View>
-                            <View style={styles.halfInput}>
-                                <Input
-                                    label="CVV"
-                                    value={cvv}
-                                    onChangeText={setCvv}
-                                    placeholder="123"
-                                    keyboardType="numeric"
-                                    secureTextEntry
-                                />
-                            </View>
-                        </View>
-                    </View>
-                )}
-
                 {/* UPI */}
                 {paymentMethod === 'upi' && (
                     <View style={styles.section}>
@@ -157,7 +125,7 @@ const PaymentScreen = ({ navigation, route }) => {
                         <View style={styles.upiApps}>
                             <Text style={styles.upiLabel}>Or pay using</Text>
                             <View style={styles.upiAppRow}>
-                                {['Google Pay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
+                                {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
                                     <TouchableOpacity key={app} style={styles.upiApp}>
                                         <View style={styles.upiAppIcon}>
                                             <Icon name="cellphone" size={20} color={colors.primary} />
@@ -165,6 +133,36 @@ const PaymentScreen = ({ navigation, route }) => {
                                         <Text style={styles.upiAppName}>{app}</Text>
                                     </TouchableOpacity>
                                 ))}
+                            </View>
+                        </View>
+                    </View>
+                )}
+
+                {/* Card Details */}
+                {paymentMethod === 'card' && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Card Details</Text>
+                        <Input
+                            label="Card Number"
+                            placeholder="1234 5678 9012 3456"
+                            keyboardType="numeric"
+                            leftIcon="credit-card-outline"
+                        />
+                        <View style={styles.row}>
+                            <View style={styles.halfInput}>
+                                <Input
+                                    label="Expiry Date"
+                                    placeholder="MM/YY"
+                                    keyboardType="numeric"
+                                />
+                            </View>
+                            <View style={styles.halfInput}>
+                                <Input
+                                    label="CVV"
+                                    placeholder="123"
+                                    keyboardType="numeric"
+                                    secureTextEntry
+                                />
                             </View>
                         </View>
                     </View>
@@ -248,11 +246,19 @@ const styles = StyleSheet.create({
     orderItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: spacing.sm,
+    },
+    orderInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        marginRight: spacing.md,
     },
     orderLabel: {
         fontSize: fontSizes.md,
-        color: colors.textSecondary,
+        color: colors.textPrimary,
+        marginLeft: spacing.sm,
         flex: 1,
     },
     orderPrice: {
@@ -260,10 +266,10 @@ const styles = StyleSheet.create({
         color: colors.textPrimary,
         fontWeight: '500',
     },
-    discountPrice: {
-        fontSize: fontSizes.md,
-        color: colors.success,
-        fontWeight: '500',
+    durationText: {
+        fontSize: fontSizes.sm,
+        color: colors.textMuted,
+        marginLeft: 28,
     },
     divider: {
         height: 1,

@@ -20,10 +20,12 @@ import HomeScreen from '../screens/main/HomeScreen';
 import SearchScreen from '../screens/main/SearchScreen';
 import MyLearningScreen from '../screens/main/MyLearningScreen';
 import AccountScreen from '../screens/main/AccountScreen';
+import NotificationScreen from '../screens/main/NotificationScreen';
 
 // Course Screens
 import CourseDetailScreen from '../screens/course/CourseDetailScreen';
 import VideoPlayerScreen from '../screens/course/VideoPlayerScreen';
+import PDFViewerScreen from '../screens/course/PDFViewerScreen';
 
 // Subscription Screens
 import SubscriptionScreen from '../screens/subscription/SubscriptionScreen';
@@ -148,6 +150,12 @@ const Navigation = () => {
                     component={VideoPlayerScreen}
                     options={{ animation: 'slide_from_bottom' }}
                 />
+                <Stack.Screen
+                    name="PDFViewer"
+                    component={PDFViewerScreen}
+                    options={{ animation: 'slide_from_bottom' }}
+                />
+                <Stack.Screen name="Notification" component={NotificationScreen} />
                 <Stack.Screen name="Subscription" component={SubscriptionScreen} />
                 <Stack.Screen name="Payment" component={PaymentScreen} />
             </Stack.Navigator>

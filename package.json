@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/slider": "^5.1.1",
     "@react-native/new-app-screen": "0.83.1",
     "@react-navigation/bottom-tabs": "^7.9.0",
     "@react-navigation/drawer": "^7.7.10",
@@ -25,6 +26,7 @@
     "react-native-gesture-handler": "^2.30.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-pdf": "^7.0.3",
     "react-native-purchases": "^8.2.3",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.19.0",

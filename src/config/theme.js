@@ -114,9 +114,9 @@ export const shadows = {
 
 // Class options for registration
 export const classOptions = [
-    { id: '10', label: 'Class 10', color: colors.class10, icon: 'numeric-10-box' },
-    { id: '11', label: 'Class 11', color: colors.class11, icon: 'numeric-11-box' },
-    { id: '12', label: 'Class 12', color: colors.class12, icon: 'numeric-12-box' },
+    { id: '10', label: 'Class 10', color: colors.class10, icon: 'school-outline' },
+    { id: '11', label: 'Class 11', color: colors.class11, icon: 'book-education-outline' },
+    { id: '12', label: 'Class 12', color: colors.class12, icon: 'certificate-outline' },
     { id: 'neet', label: 'NEET', color: colors.classNeet, icon: 'medical-bag' },
 ];
 

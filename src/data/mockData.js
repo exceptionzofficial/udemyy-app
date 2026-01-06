@@ -1,237 +1,173 @@
-// Mock Data for Genii Books Educational App
-// Sample data for 10th, 11th, 12th, and NEET students
+// Genii Books Mock Data
+// Educational content for 10th, 11th, 12th, and NEET students
 
+// Board types for filter
+export const boardTypes = [
+    { id: 'all', label: 'All Boards' },
+    { id: 'state', label: 'State Board' },
+    { id: 'cbse', label: 'CBSE' },
+];
+
+// Content types for filter
+export const contentTypes = [
+    { id: 'all', label: 'All Content' },
+    { id: 'pdf', label: 'PDFs Only' },
+    { id: 'video', label: 'Videos Only' },
+];
+
+// Subject types for filter
+export const subjectFilters = [
+    { id: 'all', label: 'All Subjects' },
+    { id: 'physics', label: 'Physics' },
+    { id: 'chemistry', label: 'Chemistry' },
+    { id: 'mathematics', label: 'Mathematics' },
+    { id: 'biology', label: 'Biology' },
+    { id: 'english', label: 'English' },
+    { id: 'science', label: 'Science' },
+];
+
+// Mock user data
 export const mockUser = {
-    id: '1',
+    id: 'user_001',
     name: 'Rahul Kumar',
-    email: 'rahul.kumar@example.com',
+    email: 'rahul@example.com',
     whatsapp: '+91 9876543210',
-    class: '12', // '10', '11', '12', 'neet'
+    class: '12',
     school: 'Delhi Public School',
     pincode: '110001',
     subscription: {
-        active: true,
-        planId: 'class12_annual',
-        startDate: '2026-01-01',
-        expiryDate: '2027-01-01',
-        status: 'active', // 'active', 'expired', 'terminated'
+        allPdfs: false,      // Has access to all PDFs
+        allVideos: false,    // Has access to all Videos
+        purchasedItems: [],  // Array of individually purchased content IDs
+        // Example: [1, 3, 5] means user purchased content with IDs 1, 3, 5
     },
+    createdAt: '2026-01-01',
 };
 
-export const mockSubjects = {
-    '10': [
-        { id: 1, name: 'Mathematics', icon: 'calculator-variant', color: '#3498DB' },
-        { id: 2, name: 'Science', icon: 'flask', color: '#27AE60' },
-        { id: 3, name: 'Social Science', icon: 'earth', color: '#E67E22' },
-        { id: 4, name: 'English', icon: 'book-open-variant', color: '#9B59B6' },
-        { id: 5, name: 'Hindi', icon: 'translate', color: '#E91E63' },
-    ],
-    '11': [
-        { id: 1, name: 'Physics', icon: 'atom', color: '#3498DB' },
-        { id: 2, name: 'Chemistry', icon: 'flask', color: '#27AE60' },
-        { id: 3, name: 'Mathematics', icon: 'calculator-variant', color: '#E67E22' },
-        { id: 4, name: 'Biology', icon: 'dna', color: '#9B59B6' },
-        { id: 5, name: 'English', icon: 'book-open-variant', color: '#E91E63' },
-    ],
-    '12': [
-        { id: 1, name: 'Physics', icon: 'atom', color: '#3498DB' },
-        { id: 2, name: 'Chemistry', icon: 'flask', color: '#27AE60' },
-        { id: 3, name: 'Mathematics', icon: 'calculator-variant', color: '#E67E22' },
-        { id: 4, name: 'Biology', icon: 'dna', color: '#9B59B6' },
-        { id: 5, name: 'English', icon: 'book-open-variant', color: '#E91E63' },
-    ],
-    'neet': [
-        { id: 1, name: 'Physics', icon: 'atom', color: '#3498DB' },
-        { id: 2, name: 'Chemistry', icon: 'flask', color: '#27AE60' },
-        { id: 3, name: 'Biology', icon: 'dna', color: '#9B59B6' },
-        { id: 4, name: 'Zoology', icon: 'paw', color: '#E67E22' },
-        { id: 5, name: 'Botany', icon: 'flower', color: '#1ABC9C' },
-    ],
+// Pricing Configuration
+export const pricing = {
+    // Subscription prices (for all content)
+    allPdfs: 999,       // Access to ALL PDFs
+    allVideos: 1499,    // Access to ALL Videos
+    allContent: 1999,   // Access to BOTH PDFs and Videos (combo)
+
+    // Individual purchase prices (per item)
+    singlePdf: 49,      // Price per PDF
+    singleVideo: 99,    // Price per Video
 };
 
+// Mock content (PDFs and Videos)
 export const mockContent = [
-    {
-        id: 1,
-        title: 'CBSE Class 12 Physics - NCERT Handwritten Notes',
-        type: 'pdf',
-        subject: 'Physics',
-        targetClass: ['12'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/851712_fc61_6.jpg',
-        description: 'Complete NCERT Physics notes for Class 12 CBSE board exams',
-        price: 299,
-        isFree: false,
-        pages: 156,
-        downloads: 12453,
-        rating: 4.8,
-        createdAt: '2025-12-01',
-    },
-    {
-        id: 2,
-        title: 'Chemistry Organic Reactions - Video Series',
-        type: 'video',
-        subject: 'Chemistry',
-        targetClass: ['11', '12', 'neet'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/567828_67d0.jpg',
-        description: 'Master organic chemistry reactions with detailed video explanations',
-        price: 499,
-        isFree: false,
-        duration: '8 hours',
-        lectures: 24,
-        rating: 4.7,
-        createdAt: '2025-11-15',
-    },
-    {
-        id: 3,
-        title: 'Mathematics - Calculus Basics (FREE)',
-        type: 'pdf',
-        subject: 'Mathematics',
-        targetClass: ['11', '12'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/1362070_b9a1_2.jpg',
-        description: 'Free introduction to calculus concepts',
-        price: 0,
-        isFree: true,
-        pages: 45,
-        downloads: 34521,
-        rating: 4.5,
-        createdAt: '2025-10-20',
-    },
-    {
-        id: 4,
-        title: 'NEET Biology - Complete Revision Notes',
-        type: 'pdf',
-        subject: 'Biology',
-        targetClass: ['neet'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/950390_270f_3.jpg',
-        description: 'Comprehensive biology notes for NEET preparation',
-        price: 599,
-        isFree: false,
-        pages: 280,
-        downloads: 8765,
-        rating: 4.9,
-        createdAt: '2025-12-10',
-    },
-    {
-        id: 5,
-        title: 'Class 10 Science - Full Course Videos',
-        type: 'video',
-        subject: 'Science',
-        targetClass: ['10'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/1709340_4137_7.jpg',
-        description: 'Complete Class 10 Science video course for CBSE',
-        price: 399,
-        isFree: false,
-        duration: '15 hours',
-        lectures: 48,
-        rating: 4.6,
-        createdAt: '2025-11-01',
-    },
-    {
-        id: 6,
-        title: 'Class 10 Mathematics Quick Formulas (FREE)',
-        type: 'pdf',
-        subject: 'Mathematics',
-        targetClass: ['10'],
-        thumbnail: 'https://img-c.udemycdn.com/course/480x270/914296_3670_8.jpg',
-        description: 'All important formulas for Class 10 Maths',
-        price: 0,
-        isFree: true,
-        pages: 25,
-        downloads: 56432,
-        rating: 4.7,
-        createdAt: '2025-09-15',
-    },
+    // State Board PDFs
+    { id: 1, title: 'Physics - Laws of Motion Notes', type: 'pdf', board: 'state', targetClass: ['11', '12'], subject: 'physics', thumbnail: 'https://picsum.photos/200/120?random=1', rating: 4.8, pages: 25, isFree: false },
+    { id: 2, title: 'Chemistry - Periodic Table Guide', type: 'pdf', board: 'state', targetClass: ['11', '12', 'neet'], subject: 'chemistry', thumbnail: 'https://picsum.photos/200/120?random=2', rating: 4.6, pages: 18, isFree: true },
+    { id: 3, title: 'Mathematics - Trigonometry Formulas', type: 'pdf', board: 'state', targetClass: ['10', '11', '12'], subject: 'mathematics', thumbnail: 'https://picsum.photos/200/120?random=3', rating: 4.9, pages: 12, isFree: false },
+    { id: 4, title: 'Biology - Cell Structure Notes', type: 'pdf', board: 'state', targetClass: ['11', '12', 'neet'], subject: 'biology', thumbnail: 'https://picsum.photos/200/120?random=4', rating: 4.7, pages: 20, isFree: false },
+
+    // State Board Videos
+    { id: 5, title: 'Physics - Mechanics Complete Lecture', type: 'video', board: 'state', targetClass: ['11', '12'], subject: 'physics', thumbnail: 'https://picsum.photos/200/120?random=5', rating: 4.7, duration: '45 min', isFree: false },
+    { id: 6, title: 'Chemistry - Organic Reactions', type: 'video', board: 'state', targetClass: ['12', 'neet'], subject: 'chemistry', thumbnail: 'https://picsum.photos/200/120?random=6', rating: 4.8, duration: '38 min', isFree: true },
+    { id: 7, title: 'Mathematics - Calculus Basics', type: 'video', board: 'state', targetClass: ['11', '12'], subject: 'mathematics', thumbnail: 'https://picsum.photos/200/120?random=7', rating: 4.6, duration: '52 min', isFree: false },
+
+    // CBSE PDFs
+    { id: 8, title: 'CBSE Physics - Modern Physics Notes', type: 'pdf', board: 'cbse', targetClass: ['12'], subject: 'physics', thumbnail: 'https://picsum.photos/200/120?random=8', rating: 4.9, pages: 30, isFree: false },
+    { id: 9, title: 'CBSE Chemistry - Chemical Bonding', type: 'pdf', board: 'cbse', targetClass: ['11', '12'], subject: 'chemistry', thumbnail: 'https://picsum.photos/200/120?random=9', rating: 4.7, pages: 22, isFree: false },
+    { id: 10, title: 'CBSE Biology - Human Physiology', type: 'pdf', board: 'cbse', targetClass: ['11', '12', 'neet'], subject: 'biology', thumbnail: 'https://picsum.photos/200/120?random=10', rating: 4.8, pages: 35, isFree: true },
+
+    // CBSE Videos
+    { id: 11, title: 'CBSE Physics - Electromagnetism Lecture', type: 'video', board: 'cbse', targetClass: ['12'], subject: 'physics', thumbnail: 'https://picsum.photos/200/120?random=11', rating: 4.9, duration: '52 min', isFree: false },
+    { id: 12, title: 'CBSE Mathematics - Calculus Full Course', type: 'video', board: 'cbse', targetClass: ['11', '12'], subject: 'mathematics', thumbnail: 'https://picsum.photos/200/120?random=12', rating: 4.6, duration: '1 hr 20 min', isFree: false },
+
+    // Class 10 Content
+    { id: 13, title: 'Class 10 Science - Complete Notes', type: 'pdf', board: 'state', targetClass: ['10'], subject: 'science', thumbnail: 'https://picsum.photos/200/120?random=13', rating: 4.8, pages: 45, isFree: false },
+    { id: 14, title: 'CBSE Class 10 - Math Video Lecture', type: 'video', board: 'cbse', targetClass: ['10'], subject: 'mathematics', thumbnail: 'https://picsum.photos/200/120?random=14', rating: 4.9, duration: '2 hrs', isFree: false },
+    { id: 15, title: 'English Grammar - Tenses Notes', type: 'pdf', board: 'state', targetClass: ['10', '11'], subject: 'english', thumbnail: 'https://picsum.photos/200/120?random=15', rating: 4.5, pages: 15, isFree: true },
 ];
 
-export const mockSubscriptionPlans = [
+// Subscription Plans
+export const subscriptionPlans = [
     {
-        id: 'class10_annual',
-        name: 'Class 10 - Annual',
-        targetClass: '10',
-        price: 999,
+        id: 'all_pdfs',
+        name: 'All PDFs Access',
+        price: pricing.allPdfs,
         duration: '1 Year',
+        icon: 'file-document-multiple',
+        color: '#E74C3C',
         features: [
-            'All Class 10 PDFs',
-            'All Class 10 Videos',
-            'Offline Download',
-            'New Content Updates',
+            'Access to ALL PDF materials',
+            'State Board + CBSE PDFs',
+            'Offline download enabled',
+            'All classes content',
         ],
     },
     {
-        id: 'class11_annual',
-        name: 'Class 11 - Annual',
-        targetClass: '11',
-        price: 1499,
+        id: 'all_videos',
+        name: 'All Videos Access',
+        price: pricing.allVideos,
         duration: '1 Year',
+        icon: 'video-box',
+        color: '#3498DB',
         features: [
-            'All Class 11 PDFs',
-            'All Class 11 Videos',
-            'Offline Download',
-            'New Content Updates',
+            'Access to ALL Video lectures',
+            'State Board + CBSE Videos',
+            'HD quality streaming',
+            'All classes content',
         ],
     },
     {
-        id: 'class12_annual',
-        name: 'Class 12 - Annual',
-        targetClass: '12',
-        price: 1499,
+        id: 'all_content',
+        name: 'Complete Access',
+        price: pricing.allContent,
         duration: '1 Year',
+        icon: 'crown',
+        color: '#F39C12',
+        popular: true,
         features: [
-            'All Class 12 PDFs',
-            'All Class 12 Videos',
-            'Offline Download',
-            'New Content Updates',
-        ],
-    },
-    {
-        id: 'neet_annual',
-        name: 'NEET - Annual',
-        targetClass: 'neet',
-        price: 2499,
-        duration: '1 Year',
-        features: [
-            'All NEET PDFs',
-            'All NEET Videos',
-            'Previous Year Papers',
-            'Mock Tests',
-            'Offline Download',
+            'Access to ALL PDFs + Videos',
+            'State Board + CBSE content',
+            'Offline download enabled',
+            'HD quality streaming',
+            'Priority support',
         ],
     },
 ];
 
+// Function to check if user has access to specific content
+export const hasAccess = (user, content) => {
+    // Free content is always accessible
+    if (content.isFree) return true;
+
+    // Check if user has subscription for this content type
+    if (content.type === 'pdf' && user.subscription.allPdfs) return true;
+    if (content.type === 'video' && user.subscription.allVideos) return true;
+
+    // Check if user purchased this specific item
+    if (user.subscription.purchasedItems.includes(content.id)) return true;
+
+    return false;
+};
+
+// Function to get price for individual content
+export const getContentPrice = (contentType) => {
+    return contentType === 'pdf' ? pricing.singlePdf : pricing.singleVideo;
+};
+
+// Mock notifications
 export const mockNotifications = [
-    {
-        id: 1,
-        type: 'content',
-        title: 'New Physics Notes Added!',
-        message: 'Chapter 5 - Magnetism notes are now available',
-        targetClass: ['12'],
-        time: '2 hours ago',
-        isRead: false,
-    },
-    {
-        id: 2,
-        type: 'announcement',
-        title: 'Exam Tips Session',
-        message: 'Join our live session for CBSE exam preparation tips',
-        targetClass: ['10', '11', '12'],
-        time: '1 day ago',
-        isRead: false,
-    },
-    {
-        id: 3,
-        type: 'offer',
-        title: 'Special Discount!',
-        message: 'Get 20% off on NEET annual subscription',
-        targetClass: ['neet'],
-        time: '2 days ago',
-        isRead: true,
-    },
+    { id: 1, title: 'New Physics Notes Available', message: 'Check out the latest State Board physics notes!', targetClass: ['11', '12'], createdAt: '2026-01-05', read: false },
+    { id: 2, title: 'Video Series Update', message: 'New chemistry video lectures are now live!', targetClass: ['12', 'neet'], createdAt: '2026-01-04', read: true },
+    { id: 3, title: 'Special Offer', message: 'Get 20% off on Complete Access plan this week!', targetClass: ['all'], createdAt: '2026-01-03', read: false },
 ];
 
 export default {
     mockUser,
-    mockSubjects,
     mockContent,
-    mockSubscriptionPlans,
+    subscriptionPlans,
+    pricing,
+    boardTypes,
+    contentTypes,
+    subjectFilters,
+    hasAccess,
+    getContentPrice,
     mockNotifications,
 };

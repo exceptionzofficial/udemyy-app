@@ -5,25 +5,26 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    Image,
     StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { colors, fontSizes, spacing, borderRadius, shadows, classOptions } from '../../config/theme';
-import { mockSubscriptionPlans, mockUser } from '../../data/mockData';
+import { colors, fontSizes, spacing, borderRadius, shadows } from '../../config/theme';
+import { subscriptionPlans, pricing } from '../../data/mockData';
 import Button from '../../components/common/Button';
 
-const SubscriptionScreen = ({ navigation }) => {
-    const [user] = useState(mockUser);
-    const userClassInfo = classOptions.find(c => c.id === user.class);
-    const plan = mockSubscriptionPlans.find(p => p.targetClass === user.class);
+const SubscriptionScreen = ({ navigation, route }) => {
+    const selectedPlanId = route.params?.selectedPlan;
+    const [activePlan, setActivePlan] = useState(selectedPlanId || 'all_content');
 
-    const handleSubscribe = () => {
-        navigation.navigate('Payment', { plan });
+    const handleSubscribe = (plan) => {
+        navigation.navigate('Payment', {
+            type: 'subscription',
+            plan: plan
+        });
     };
 
-    const formatPrice = (price) => '₹' + price.toLocaleString('en-IN');
+    const formatPrice = (price) => 'Rs.' + price?.toLocaleString('en-IN');
 
     return (
         <View style={styles.container}>
@@ -39,111 +40,98 @@ const SubscriptionScreen = ({ navigation }) => {
                 </TouchableOpacity>
 
                 <Icon name="crown" size={60} color={colors.secondary} style={styles.crownIcon} />
-                <Text style={styles.headerTitle}>Upgrade to Premium</Text>
-                <Text style={styles.headerSubtitle}>
-                    Unlock all {userClassInfo?.label} materials
-                </Text>
+                <Text style={styles.headerTitle}>Choose Your Plan</Text>
+                <Text style={styles.headerSubtitle}>Get unlimited access to study materials</Text>
             </LinearGradient>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Plan Card */}
-                <View style={styles.planCard}>
-                    <View style={styles.planHeader}>
-                        <View>
-                            <Text style={styles.planName}>{plan?.name}</Text>
-                            <Text style={styles.planDuration}>Valid for {plan?.duration}</Text>
-                        </View>
-                        <View style={styles.priceContainer}>
-                            <Text style={styles.priceSymbol}>₹</Text>
-                            <Text style={styles.priceValue}>{plan?.price}</Text>
-                        </View>
+                {/* Individual Pricing Info */}
+                <View style={styles.infoCard}>
+                    <View style={styles.infoIcon}>
+                        <Icon name="information" size={20} color={colors.primary} />
                     </View>
-
-                    <View style={styles.featuresContainer}>
-                        {plan?.features.map((feature, index) => (
-                            <View key={index} style={styles.featureItem}>
-                                <Icon name="check-circle" size={20} color={colors.success} />
-                                <Text style={styles.featureText}>{feature}</Text>
-                            </View>
-                        ))}
+                    <View style={styles.infoContent}>
+                        <Text style={styles.infoTitle}>Individual Purchase</Text>
+                        <Text style={styles.infoText}>
+                            Buy individual PDFs for Rs.{pricing.singlePdf} each and Videos for Rs.{pricing.singleVideo} each from the home screen.
+                        </Text>
                     </View>
                 </View>
 
-                {/* What You Get */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>What You Get</Text>
+                {/* Subscription Plans */}
+                <View style={styles.plansSection}>
+                    {subscriptionPlans.map((plan) => {
+                        const isSelected = activePlan === plan.id;
 
-                    <View style={styles.benefitCard}>
-                        <View style={styles.benefitIcon}>
-                            <Icon name="download" size={28} color={colors.primary} />
-                        </View>
-                        <View style={styles.benefitContent}>
-                            <Text style={styles.benefitTitle}>Offline Downloads</Text>
-                            <Text style={styles.benefitText}>
-                                Download PDFs and videos to access offline anytime
-                            </Text>
-                        </View>
-                    </View>
+                        return (
+                            <TouchableOpacity
+                                key={plan.id}
+                                style={[styles.planCard, isSelected && styles.planCardSelected]}
+                                onPress={() => setActivePlan(plan.id)}
+                                activeOpacity={0.8}
+                            >
+                                {plan.popular && (
+                                    <View style={styles.popularBadge}>
+                                        <Text style={styles.popularText}>BEST VALUE</Text>
+                                    </View>
+                                )}
 
-                    <View style={styles.benefitCard}>
-                        <View style={styles.benefitIcon}>
-                            <Icon name="infinity" size={28} color={colors.primary} />
-                        </View>
-                        <View style={styles.benefitContent}>
-                            <Text style={styles.benefitTitle}>Unlimited Access</Text>
-                            <Text style={styles.benefitText}>
-                                Access all {userClassInfo?.label} content for the entire year
-                            </Text>
-                        </View>
-                    </View>
+                                <View style={styles.planHeader}>
+                                    <View style={[styles.planIcon, { backgroundColor: plan.color + '20' }]}>
+                                        <Icon name={plan.icon} size={28} color={plan.color} />
+                                    </View>
 
-                    <View style={styles.benefitCard}>
-                        <View style={styles.benefitIcon}>
-                            <Icon name="update" size={28} color={colors.primary} />
-                        </View>
-                        <View style={styles.benefitContent}>
-                            <Text style={styles.benefitTitle}>New Content Updates</Text>
-                            <Text style={styles.benefitText}>
-                                Get access to all new materials added during your subscription
-                            </Text>
-                        </View>
-                    </View>
+                                    <View style={styles.planInfo}>
+                                        <Text style={styles.planName}>{plan.name}</Text>
+                                        <Text style={styles.planDuration}>{plan.duration}</Text>
+                                    </View>
 
-                    <View style={styles.benefitCard}>
-                        <View style={styles.benefitIcon}>
-                            <Icon name="headset" size={28} color={colors.primary} />
-                        </View>
-                        <View style={styles.benefitContent}>
-                            <Text style={styles.benefitTitle}>Priority Support</Text>
-                            <Text style={styles.benefitText}>
-                                Get quick help from our support team on WhatsApp
-                            </Text>
-                        </View>
-                    </View>
+                                    <View style={styles.planPricing}>
+                                        <Text style={styles.planPrice}>{formatPrice(plan.price)}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.planFeatures}>
+                                    {plan.features.map((feature, index) => (
+                                        <View key={index} style={styles.featureItem}>
+                                            <Icon name="check-circle" size={16} color={colors.success} />
+                                            <Text style={styles.featureText}>{feature}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+
+                                {isSelected && (
+                                    <View style={styles.selectedIndicator}>
+                                        <Icon name="check-circle" size={20} color={colors.primary} />
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
                 {/* FAQ */}
-                <View style={styles.section}>
+                <View style={styles.faqSection}>
                     <Text style={styles.sectionTitle}>Frequently Asked</Text>
+
+                    <View style={styles.faqItem}>
+                        <Text style={styles.faqQuestion}>What's the difference between subscription and individual purchase?</Text>
+                        <Text style={styles.faqAnswer}>
+                            Subscription gives you access to ALL content of that type. Individual purchase lets you buy specific materials at Rs.{pricing.singlePdf}/PDF or Rs.{pricing.singleVideo}/video.
+                        </Text>
+                    </View>
 
                     <View style={styles.faqItem}>
                         <Text style={styles.faqQuestion}>How long is the subscription valid?</Text>
                         <Text style={styles.faqAnswer}>
-                            Your subscription is valid for 1 year from the date of purchase.
+                            All subscriptions are valid for 1 year. Individual purchases give lifetime access.
                         </Text>
                     </View>
 
                     <View style={styles.faqItem}>
-                        <Text style={styles.faqQuestion}>Can I cancel my subscription?</Text>
+                        <Text style={styles.faqQuestion}>Can I download content?</Text>
                         <Text style={styles.faqAnswer}>
-                            Since this is a digital product, refunds are subject to our refund policy. Contact support for assistance.
-                        </Text>
-                    </View>
-
-                    <View style={styles.faqItem}>
-                        <Text style={styles.faqQuestion}>Can I switch to a different class?</Text>
-                        <Text style={styles.faqAnswer}>
-                            Yes, contact support to upgrade or change your class subscription.
+                            For security reasons, content is view-only within the app. This protects the creators' work.
                         </Text>
                     </View>
                 </View>
@@ -153,13 +141,17 @@ const SubscriptionScreen = ({ navigation }) => {
 
             {/* Subscribe Button */}
             <View style={styles.footer}>
-                <View style={styles.footerPrice}>
-                    <Text style={styles.footerPriceLabel}>Total</Text>
-                    <Text style={styles.footerPriceValue}>{formatPrice(plan?.price || 0)}</Text>
+                <View style={styles.footerInfo}>
+                    <Text style={styles.footerPlanName}>
+                        {subscriptionPlans.find(p => p.id === activePlan)?.name}
+                    </Text>
+                    <Text style={styles.footerPrice}>
+                        {formatPrice(subscriptionPlans.find(p => p.id === activePlan)?.price)}
+                    </Text>
                 </View>
                 <Button
                     title="Subscribe Now"
-                    onPress={handleSubscribe}
+                    onPress={() => handleSubscribe(subscriptionPlans.find(p => p.id === activePlan))}
                     style={styles.subscribeButton}
                 />
             </View>
@@ -203,101 +195,132 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
     },
+
+    // Info Card
+    infoCard: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(26, 188, 156, 0.1)',
+        marginHorizontal: spacing.lg,
+        marginTop: spacing.lg,
+        padding: spacing.lg,
+        borderRadius: borderRadius.lg,
+        borderWidth: 1,
+        borderColor: colors.primary,
+    },
+    infoIcon: {
+        marginRight: spacing.md,
+    },
+    infoContent: {
+        flex: 1,
+    },
+    infoTitle: {
+        fontSize: fontSizes.md,
+        fontWeight: '600',
+        color: colors.primary,
+        marginBottom: 4,
+    },
+    infoText: {
+        fontSize: fontSizes.sm,
+        color: colors.textSecondary,
+        lineHeight: 18,
+    },
+
+    // Plans Section
+    plansSection: {
+        padding: spacing.lg,
+        gap: spacing.md,
+    },
+    sectionTitle: {
+        fontSize: fontSizes.lg,
+        fontWeight: '700',
+        color: colors.textPrimary,
+        marginBottom: spacing.md,
+    },
     planCard: {
         backgroundColor: colors.background,
-        margin: spacing.lg,
         borderRadius: borderRadius.lg,
-        padding: spacing.xl,
-        ...shadows.medium,
+        padding: spacing.lg,
         borderWidth: 2,
+        borderColor: colors.borderLight,
+        position: 'relative',
+        marginBottom: spacing.md,
+        ...shadows.light,
+    },
+    planCardSelected: {
         borderColor: colors.primary,
+    },
+    popularBadge: {
+        position: 'absolute',
+        top: -12,
+        right: spacing.lg,
+        backgroundColor: colors.secondary,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 4,
+        borderRadius: borderRadius.sm,
+    },
+    popularText: {
+        fontSize: fontSizes.xs,
+        fontWeight: '700',
+        color: colors.textPrimary,
     },
     planHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: spacing.lg,
-        paddingBottom: spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
+        alignItems: 'center',
+        marginBottom: spacing.md,
+    },
+    planIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: borderRadius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    planInfo: {
+        flex: 1,
+        marginLeft: spacing.md,
     },
     planName: {
-        fontSize: fontSizes.xxl,
+        fontSize: fontSizes.lg,
         fontWeight: '700',
         color: colors.textPrimary,
     },
     planDuration: {
-        fontSize: fontSizes.md,
+        fontSize: fontSizes.sm,
         color: colors.textSecondary,
-        marginTop: spacing.xs,
     },
-    priceContainer: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
+    planPricing: {
+        alignItems: 'flex-end',
     },
-    priceSymbol: {
-        fontSize: fontSizes.lg,
-        fontWeight: '600',
-        color: colors.primary,
-        marginTop: spacing.xs,
-    },
-    priceValue: {
-        fontSize: fontSizes.title,
+    planPrice: {
+        fontSize: fontSizes.xxl,
         fontWeight: '700',
         color: colors.primary,
     },
-    featuresContainer: {
+    planFeatures: {
+        paddingTop: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderLight,
         marginTop: spacing.sm,
     },
     featureItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
     },
     featureText: {
-        fontSize: fontSizes.md,
-        color: colors.textPrimary,
-        marginLeft: spacing.md,
-    },
-    section: {
-        padding: spacing.lg,
-    },
-    sectionTitle: {
-        fontSize: fontSizes.xl,
-        fontWeight: '700',
-        color: colors.textPrimary,
-        marginBottom: spacing.lg,
-    },
-    benefitCard: {
-        flexDirection: 'row',
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        borderRadius: borderRadius.md,
-        marginBottom: spacing.md,
-        ...shadows.light,
-    },
-    benefitIcon: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: colors.backgroundGray,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: spacing.lg,
-    },
-    benefitContent: {
-        flex: 1,
-    },
-    benefitTitle: {
-        fontSize: fontSizes.md,
-        fontWeight: '600',
-        color: colors.textPrimary,
-        marginBottom: 4,
-    },
-    benefitText: {
         fontSize: fontSizes.sm,
         color: colors.textSecondary,
-        lineHeight: 20,
+        marginLeft: spacing.sm,
+    },
+    selectedIndicator: {
+        position: 'absolute',
+        top: spacing.md,
+        right: spacing.md,
+    },
+
+    // FAQ Section
+    faqSection: {
+        padding: spacing.lg,
     },
     faqItem: {
         backgroundColor: colors.background,
@@ -316,6 +339,7 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
         lineHeight: 20,
     },
+
     bottomPadding: {
         height: 100,
     },
@@ -328,14 +352,14 @@ const styles = StyleSheet.create({
         borderTopColor: colors.borderLight,
         ...shadows.medium,
     },
-    footerPrice: {
+    footerInfo: {
         flex: 1,
     },
-    footerPriceLabel: {
+    footerPlanName: {
         fontSize: fontSizes.sm,
         color: colors.textSecondary,
     },
-    footerPriceValue: {
+    footerPrice: {
         fontSize: fontSizes.xxl,
         fontWeight: '700',
         color: colors.primary,
